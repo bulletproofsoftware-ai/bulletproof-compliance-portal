@@ -1,0 +1,34 @@
+{% import "_macros.html" as macros %}
+{{ macros.section("Compliance Dashboard Snapshot") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Snapshot ID", snapshot.id if snapshot else document_id) }}
+    {{ macros.kv_row("Captured (UTC)", snapshot.captured_at if snapshot else "—") }}
+    {{ macros.kv_row("Period", snapshot.period if snapshot else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Key Metrics") }}
+{% if snapshot and snapshot.metrics %}
+<table class="data-table">
+  <thead><tr><th>Metric</th><th>Value</th><th>Trend</th></tr></thead>
+  <tbody>
+    {% for m in snapshot.metrics %}
+    <tr><td>{{ m.name }}</td><td>{{ m.value }}</td><td>{{ m.trend }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>—</p>
+{% endif %}
+
+{{ macros.section("Open Items") }}
+{% if snapshot and snapshot.open_items %}
+<ul>
+  {% for item in snapshot.open_items %}
+  <li>{{ item.title }} ({{ item.severity }}) — owner {{ item.owner }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>None.</p>
+{% endif %}

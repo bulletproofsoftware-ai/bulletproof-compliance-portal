@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% from "_components.html" import breadcrumbs %}
+{% block title %}{{ card.name }}{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "Model Cards", "href": "/models"}, {"label": card.name}]) }}{% endblock %}
+{% block content %}
+<h1>{{ card.name }}</h1>
+<p class="muted">{{ card.family or "—" }} · v{{ card.version }}{% if card.vendor %} · vendor {{ card.vendor }}{% endif %}</p>
+
+<div class="panel">
+  <h3>Identity</h3>
+  <table>
+    <tr><th>Model ID</th><td class="mono">{{ card.model_id }}</td></tr>
+    <tr><th>Framework</th><td>{{ card.framework or "—" }}</td></tr>
+    <tr><th>Deployment scope</th><td>{{ card.deployment_scope or "—" }}</td></tr>
+    {% if card.risk_tier %}
+      <tr><th>Risk tier</th>
+          <td><span class="badge badge-{{ 'restricted' if card.risk_tier >= 3 else 'internal' }}">Tier {{ card.risk_tier }} (NY DFS Part 500)</span></td>
+      </tr>
+    {% endif %}
+  </table>
+</div>
+
+<div class="panel">
+  <h3>Use</h3>
+  <h4>Intended use</h4>
+  <p>{{ card.intended_use or "—" }}</p>
+  <h4>Prohibited use</h4>
+  <p>{{ card.prohibited_use or "—" }}</p>
+</div>
+
+<div class="panel">
+  <h3>Validation</h3>
+  <table>
+    <tr><th>Last validated</th><td>{{ card.last_validated_at.strftime("%Y-%m-%d") if card.last_validated_at else "—" }}</td></tr>
+    <tr><th>Bias assessment</th><td>{{ card.bias_assessment_summary or "—" }}</td></tr>
+    {% if card.bias_evidence_package_id %}
+      <tr><th>Bias evidence</th><td><a href="/evidence/{{ card.bias_evidence_package_id }}" class="mono">{{ card.bias_evidence_package_id }}</a></td></tr>
+    {% endif %}
+  </table>
+</div>
+
+<div class="panel">
+  <h3>Responsible persons (REQ-CPL-020)</h3>
+  {% if card.responsibles %}
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+      <tbody>
+      {% for p in card.responsibles %}
+        <tr><td>{{ p.name }}</td><td>{{ p.email }}</td><td>{{ p.role }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No responsible persons assigned.</p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h3>Annual review</h3>
+  {% if card.next_review_date %}
+    <p>Next review: <strong>{{ card.next_review_date.strftime("%Y-%m-%d") }}</strong>
+       (<span class="sla-{{ 'red' if review_band in ('red','overdue') else ('amber' if review_band == 'amber' else 'green') }}">{{ review_band|upper }}</span>)
+    </p>
+    {% if reminders %}
+      <h4>Reminder schedule</h4>
+      <ul>
+        {% for r in reminders %}
+          <li><strong>{{ r.window }}</strong> — fires {{ r.fires_at.strftime("%Y-%m-%d") }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% else %}
+    <p class="muted">No review scheduled.</p>
+  {% endif %}
+
+  {% if is_writable %}
+    <h4>Schedule new review</h4>
+    <form hx-post="/models/{{ card.model_id }}/review/start"
+          hx-target="#review-form-result"
+          hx-swap="innerHTML">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="form-row">
+        <label for="scheduled_for">Date (ISO-8601)</label>
+        <input type="text" id="scheduled_for" name="scheduled_for" placeholder="2027-04-27T00:00:00Z" required>
+      </div>
+      <div class="form-row">
+        <label for="primary_reviewer_sub">Primary reviewer (sub)</label>
+        <input type="text" id="primary_reviewer_sub" name="primary_reviewer_sub">
+      </div>
+      <button type="submit">Schedule review</button>
+    </form>
+    <div id="review-form-result"></div>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h3>Review history</h3>
+  {% if card.reviews %}
+    <table>
+      <thead>
+        <tr><th>Review</th><th>State</th><th>Decision</th><th>Signed</th><th></th></tr>
+      </thead>
+      <tbody>
+      {% for r in card.reviews %}
+        <tr>
+          <td class="mono">{{ r.review_id }}</td>
+          <td><span class="badge badge-internal">{{ r.state }}</span></td>
+          <td>{{ r.decision or "—" }}</td>
+          <td>
+            {% if r.signed_at %}
+              <span class="badge badge-internal">signed</span>
+              <br><span class="mono muted">{{ r.signing_key_id }}</span>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.state == 'decision' and is_writable and r.review_id in nonces %}
+              <form hx-post="/models/{{ card.model_id }}/review/{{ r.review_id }}/sign-off"
+                    hx-target="#signoff-{{ r.review_id }}"
+                    hx-swap="innerHTML">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="decision_nonce" value="{{ nonces[r.review_id] }}">
+                <button type="submit">Sign off (MFA)</button>
+              </form>
+              <div id="signoff-{{ r.review_id }}"></div>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No reviews yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

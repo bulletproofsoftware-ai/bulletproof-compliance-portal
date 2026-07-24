@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>{% block title %}Compliance Portal{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">Compliance Portal</span>
+    {% if user %}
+    <form class="topbar-search" method="get" action="/search" role="search">
+      <input type="search" name="q" placeholder="Search…" aria-label="Search" value="{{ q if q is defined else '' }}">
+    </form>
+    {% endif %}
+    <span class="spacer"></span>
+    {% if user %}
+      <span class="muted">{{ user.email }} ({{ user.roles|map(attribute="value")|join(",") }})</span>
+      <a href="/auth/logout">Log out</a>
+    {% else %}
+      <a href="/auth/login">Log in</a>
+    {% endif %}
+  </header>
+  <div class="layout">
+    {% if user %}{% set nav = nav_for(user, request.url.path) %}{% include "_nav.html" %}{% endif %}
+    <main class="content">
+      {% block breadcrumbs %}{% endblock %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <!-- Reusable detail popup. Any list can target #cp-modal-body via hx-get;
+       the modal opens automatically when content is swapped in. -->
+  <dialog id="cp-modal" class="cp-modal" aria-label="Details">
+    <form method="dialog" class="cp-modal-bar">
+      <button class="cp-modal-close" value="close" aria-label="Close">✕</button>
+    </form>
+    <div id="cp-modal-body"></div>
+  </dialog>
+  <!--
+    HTMX is loaded as a vendored static asset (no external CDN, per WI-01).
+    If `static_url` is unavailable we degrade gracefully — the portal remains
+    usable without HTMX (full-page nav).
+  -->
+  <script src="/static/js/htmx.min.js" defer></script>
+  <script src="/static/js/portal.js" defer></script>
+  <script>
+    // Open the reusable modal whenever HTMX swaps content into its body.
+    document.body.addEventListener("htmx:afterSwap", function (e) {
+      if (e.target && e.target.id === "cp-modal-body") {
+        var d = document.getElementById("cp-modal");
+        if (d && typeof d.showModal === "function" && !d.open) d.showModal();
+      }
+    });
+  </script>
+  {% block body_extra %}{% endblock %}
+</body>
+</html>

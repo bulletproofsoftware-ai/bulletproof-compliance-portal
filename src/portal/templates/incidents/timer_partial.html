@@ -1,0 +1,8 @@
+<h3>72-hour notification countdown (NY DFS Part 500)</h3>
+<p class="sla-{{ 'red' if band in ('red','overdue') else ('amber' if band == 'amber' else 'green') }}"
+   style="font-size:1.5rem; font-weight:700;">
+  {{ band|upper }} — {{ remaining }}
+</p>
+{% if incident.notification_due_at %}
+  <p class="muted">Deadline: <span class="mono">{{ incident.notification_due_at.isoformat() }}</span></p>
+{% endif %}

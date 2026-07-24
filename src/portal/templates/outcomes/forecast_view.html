@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Forecast{% endblock %}
+{% block head_extra %}
+<style>
+  .forecast-band { fill: rgba(29, 78, 216, 0.15); stroke: none; }
+  .forecast-line { fill: none; stroke: #1d4ed8; stroke-width: 1.5; }
+  .forecast-axis { stroke: #6b7280; stroke-width: 0.5; }
+  .forecast-axis text { fill: #6b7280; font-size: 10px; }
+</style>
+{% endblock %}
+{% block content %}
+<h1>Forecast</h1>
+<p class="muted">REQ-CPL-032 — horizon: <strong>{{ horizon_days }} days</strong>
+  · generated_at <span class="mono">{{ chart_data.generated_at }}</span></p>
+
+{% if band_problems %}
+  <div class="alert-warn">
+    <strong>Band ordering anomaly</strong>: the upstream service emitted
+    {{ band_problems|length }} inverted point(s).
+    <ul>
+      {% for prob in band_problems[:5] %}<li>{{ prob }}</li>{% endfor %}
+      {% if band_problems|length > 5 %}<li>… {{ band_problems|length - 5 }} more</li>{% endif %}
+    </ul>
+  </div>
+{% endif %}
+
+<div class="panel">
+  <h2>Cost forecast</h2>
+  <div id="forecast-cost"
+       data-chart='{{ chart_data|tojson }}'
+       style="width: 100%; height: 220px"></div>
+</div>
+
+<div class="panel">
+  <h2>Quality forecast</h2>
+  <div id="forecast-quality"
+       data-chart='{{ chart_data|tojson }}'
+       style="width: 100%; height: 220px"></div>
+</div>
+
+<div class="panel">
+  <h2>Confidence per point</h2>
+  <table>
+    <thead><tr><th>As of</th><th>Confidence</th><th>Cost mean</th><th>Quality mean</th></tr></thead>
+    <tbody>
+      {% for p in forecast.points %}
+        <tr>
+          <td><span class="mono">{{ p.asof }}</span></td>
+          <td>{{ "%.2f" % p.confidence }}</td>
+          <td>${{ "%.2f" % p.cost_mean_usd }}</td>
+          <td>{{ "%.2f" % p.quality_mean }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script src="/static/js/forecasts.js" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (!window.ComplianceForecasts) return;
+    var costEl = document.getElementById("forecast-cost");
+    var qualEl = document.getElementById("forecast-quality");
+    var data = JSON.parse(costEl.dataset.chart || "{}");
+    window.ComplianceForecasts.renderCostBand(costEl, data);
+    window.ComplianceForecasts.renderQualityBand(qualEl, data);
+  });
+</script>
+{% endblock %}

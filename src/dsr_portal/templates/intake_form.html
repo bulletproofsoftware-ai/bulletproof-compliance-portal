@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Submit DSR</title>
+  <style>
+    body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    label { display: block; font-weight: 600; margin-top: 1rem; }
+    input, select, textarea { width: 100%; padding: 0.5rem; margin-top: 0.25rem; box-sizing: border-box; }
+    button { background: #1f2937; color: #fff; padding: 0.6rem 1.2rem; border: 0; border-radius: 4px; cursor: pointer; margin-top: 1rem; }
+    .honeypot { position: absolute; left: -10000px; }
+  </style>
+</head>
+<body>
+  <h1>Submit a DSR</h1>
+  <p>Fields marked * are required. Submitting this form does not constitute identity verification — we will request additional proof if needed.</p>
+
+  <form method="post" action="/dsr/submit" enctype="multipart/form-data">
+    <!-- Honeypot field — hidden from real users; bots fill it. -->
+    <div class="honeypot">
+      <label for="website">Website</label>
+      <input type="text" id="website" name="website" autocomplete="off" tabindex="-1">
+    </div>
+
+    <label for="request_type">Request type *</label>
+    <select id="request_type" name="request_type" required>
+      <option value="access">Access (Art 15)</option>
+      <option value="rectification">Rectification (Art 16)</option>
+      <option value="erasure">Erasure (Art 17)</option>
+      <option value="restriction">Restriction (Art 18)</option>
+      <option value="portability">Portability (Art 20)</option>
+      <option value="objection">Objection (Art 21)</option>
+      <option value="automated_decision_review">Automated decision review (Art 22)</option>
+    </select>
+
+    <label for="subject_name">Your name *</label>
+    <input type="text" id="subject_name" name="subject_name" required>
+
+    <label for="subject_email">Your email *</label>
+    <input type="email" id="subject_email" name="subject_email" required>
+
+    <label for="description">Details of your request</label>
+    <textarea id="description" name="description" rows="4"></textarea>
+
+    <label for="identity_proof">Identity proof (PDF, JPG, or PNG; max 5MB)</label>
+    <input type="file" id="identity_proof" name="identity_proof" accept=".pdf,.jpg,.jpeg,.png">
+
+    <label for="captcha_token">CAPTCHA *</label>
+    <input type="text" id="captcha_token" name="captcha_token" placeholder="(token from CAPTCHA widget)">
+
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>

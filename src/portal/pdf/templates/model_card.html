@@ -1,0 +1,38 @@
+{% import "_macros.html" as macros %}
+{{ macros.section("Model Card") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Model ID", model.id if model else document_id) }}
+    {{ macros.kv_row("Name", model.name if model else "—") }}
+    {{ macros.kv_row("Version", model.version if model else "—") }}
+    {{ macros.kv_row("Provider", model.provider if model else "—") }}
+    {{ macros.kv_row("Owner", model.owner if model else "—") }}
+    {{ macros.kv_row("Last reviewed (UTC)", model.last_reviewed_at if model else "—") }}
+    {{ macros.kv_row("Status", model.status if model else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Intended Use") }}
+<p>{{ model.intended_use if model and model.intended_use else "—" }}</p>
+
+{{ macros.section("Limitations") }}
+<p>{{ model.limitations if model and model.limitations else "—" }}</p>
+
+{{ macros.section("Performance Metrics") }}
+{% if model and model.metrics %}
+<table class="data-table">
+  <thead>
+    <tr><th>Metric</th><th>Value</th><th>Dataset</th></tr>
+  </thead>
+  <tbody>
+    {% for m in model.metrics %}
+    <tr><td>{{ m.name }}</td><td>{{ m.value }}</td><td>{{ m.dataset }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>—</p>
+{% endif %}
+
+{{ macros.section("Risk Assessment") }}
+<p>{{ model.risk_assessment if model and model.risk_assessment else "—" }}</p>

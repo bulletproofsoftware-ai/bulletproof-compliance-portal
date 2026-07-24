@@ -1,0 +1,111 @@
+# syntax=docker/dockerfile:1.7
+# WI-18 — Public DSR Portal production image.
+#
+# Same hardening as Dockerfile.portal but smaller surface area:
+#   - Only src/dsr_portal + src/shared + src/portal/{config,logging,middleware,security}
+#     (the public app re-uses portal.config / portal.middleware modules)
+#   - No internal-portal routers, templates, auth, or PDF service code paths
+#   - Listens on 8002 (distinct from internal 8001)
+#   - Same WeasyPrint deps because dsr delivery receipts may be rendered
+
+###############################################################################
+# Stage 1: builder
+###############################################################################
+FROM python:3.12-slim AS builder
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    VIRTUAL_ENV=/opt/venv
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        build-essential \
+        gcc \
+        libffi-dev \
+        libssl-dev \
+        pkg-config \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv "$VIRTUAL_ENV"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+WORKDIR /build
+COPY requirements.txt ./
+RUN pip install --upgrade pip wheel \
+ && pip install -r requirements.txt
+
+###############################################################################
+# Stage 2: runtime
+###############################################################################
+FROM python:3.12-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
+    VIRTUAL_ENV=/opt/venv \
+    PATH=/opt/venv/bin:/usr/local/bin:/usr/bin:/bin \
+    APP_MODE=public \
+    APP_ENV=production \
+    LOG_LEVEL=INFO \
+    PORT=8002
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        tini \
+        curl \
+        passwd \
+        libcairo2 \
+        libpango-1.0-0 \
+        libpangoft2-1.0-0 \
+        libgdk-pixbuf-2.0-0 \
+        libffi8 \
+        libssl3 \
+        shared-mime-info \
+        fonts-dejavu \
+        fonts-liberation \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN /usr/sbin/groupadd --system --gid 10001 app \
+ && /usr/sbin/useradd --system --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin app
+
+COPY --from=builder /opt/venv /opt/venv
+
+WORKDIR /app
+# Public DSR portal needs:
+#   - dsr_portal package (own routers/templates)
+#   - shared (api_client)
+#   - portal package — but ONLY because dsr_portal.main imports
+#       portal.config / portal.logging / portal.middleware / portal.security
+#     These submodules have no transitive dependency on internal-only routers.
+#     Internal routers/templates are NOT imported at startup, so their absence
+#     would break create_public_app() at module-import time.
+#     We copy the full portal package but WITHOUT static/templates so the public
+#     image stays smaller. The internal routers are inert (not registered) when
+#     create_public_app() runs.
+COPY --chown=app:app src/dsr_portal /app/src/dsr_portal
+COPY --chown=app:app src/shared /app/src/shared
+COPY --chown=app:app src/portal /app/src/portal
+# Strip out internal-only static + templates from the public image to reduce
+# attack surface and image size. These are not referenced by create_public_app().
+RUN rm -rf /app/src/portal/static /app/src/portal/templates
+COPY --chown=app:app docker/entrypoint.sh /app/entrypoint.sh
+RUN chmod 0755 /app/entrypoint.sh
+
+USER app:app
+
+EXPOSE 8002
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl --fail --silent --show-error http://127.0.0.1:8002/healthz || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/app/entrypoint.sh"]
+CMD ["uvicorn", "dsr_portal.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8002", \
+     "--workers", "2", \
+     "--proxy-headers", \
+     "--forwarded-allow-ips", "127.0.0.1", \
+     "--no-server-header", \
+     "--access-log"]

@@ -1,0 +1,22 @@
+{% import "_macros.html" as macros %}
+{{ macros.section(doc.title if doc and doc.title else "Project Documentation") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Document ID", doc.id if doc else document_id) }}
+    {{ macros.kv_row("Project", doc.project_id if doc else "—") }}
+    {{ macros.kv_row("Author", doc.author if doc else "—") }}
+    {{ macros.kv_row("Last modified", doc.last_modified_at if doc else "—") }}
+    {{ macros.kv_row("Version", doc.version if doc else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Body") }}
+{% if doc and doc.body_html %}
+{# Body is pre-sanitized markdown rendered to HTML by the markdown proxy (WI-16). #}
+{# We treat it as text by default to be safe; auditors get the same escape rules. #}
+<div class="doc-body">{{ doc.body_html | safe }}</div>
+{% elif doc and doc.body_text %}
+<pre class="doc-body">{{ doc.body_text }}</pre>
+{% else %}
+<p>—</p>
+{% endif %}

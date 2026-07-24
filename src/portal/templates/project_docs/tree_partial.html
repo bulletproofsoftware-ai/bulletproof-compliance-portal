@@ -1,0 +1,29 @@
+{# REQ-CPL-041 — six-category hierarchical tree partial. #}
+{% set pid = project_id if project_id is defined else project.project_id %}
+{% for cat in categories %}
+  <details {% if loop.first %}open{% endif %}>
+    <summary><strong>{{ cat|capitalize }}</strong>
+      <span class="muted">({{ tree[cat]|length }})</span></summary>
+    {% if tree[cat] %}
+      <ul>
+        {% for n in tree[cat] %}
+          <li>
+            <a href="/projects/{{ pid }}/docs/{{ n.path }}">{{ n.name }}</a>
+            <span class="muted mono">({{ n.doc_type }})</span>
+            {% if n.last_modified %}
+              <span class="muted mono">· {{ n.last_modified }}</span>
+            {% endif %}
+            <a href="/projects/{{ pid }}/docs/{{ n.path }}/history"
+               hx-get="/projects/{{ pid }}/docs/{{ n.path }}/history"
+               hx-target="#history-area"
+               hx-swap="innerHTML"
+               class="muted">history</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">— no documents —</p>
+    {% endif %}
+  </details>
+{% endfor %}
+<div id="history-area" class="panel" style="display: block"></div>

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "_components.html" import breadcrumbs %}
+{% block title %}{{ framework_label }} — Dashboard{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "Dashboards", "href": "/dashboards"}, {"label": framework_label}]) }}{% endblock %}
+{% block content %}
+<h1>{{ framework_label }}</h1>
+<p class="muted">Framework: <span class="mono">{{ framework }}</span></p>
+
+<div class="panel">
+  <h2>Overall score</h2>
+  <p>
+    <strong style="font-size: 2rem">{{ "%.1f" % scores.overall_score }}</strong>
+    {% if scores.regression_flag %}
+      <span class="badge badge-restricted">regression</span>
+    {% endif %}
+    <span class="muted" style="margin-left: 1rem">
+      asof <span class="mono">{{ scores.asof }}</span>
+    </span>
+  </p>
+</div>
+
+<div class="panel">
+  <h2>Per-domain scores</h2>
+  <canvas id="score-bars"
+          data-labels='{{ domain_labels|tojson }}'
+          data-values='{{ domain_values|tojson }}'
+          style="max-width: 100%; height: 240px"></canvas>
+  <noscript>
+    <table>
+      <thead><tr>
+        {% for d in scores.domain_scores %}<th>{{ d.domain }}</th>{% endfor %}
+      </tr></thead>
+      <tbody><tr>
+        {% for d in scores.domain_scores %}<td>{{ "%.1f" % d.score }}</td>{% endfor %}
+      </tr></tbody>
+    </table>
+  </noscript>
+</div>
+
+<div class="panel">
+  <h2>90-day trend</h2>
+  <svg viewBox="0 0 600 80" width="100%" height="80"
+       class="sparkline-large" data-values='{{ trend_values|tojson }}'></svg>
+</div>
+
+<div class="panel">
+  <h2>Open gaps ({{ gaps.gaps|length }})</h2>
+  <a href="/dashboards/{{ framework }}/gap-analysis"
+     hx-get="/dashboards/{{ framework }}/gap-analysis"
+     hx-target="#gap-area"
+     hx-swap="innerHTML">View gap analysis</a>
+  <div id="gap-area" style="margin-top: 1rem"></div>
+</div>
+
+<p>
+  <a href="/export/pdf/dashboard_snapshot/{{ framework }}">Export PDF snapshot</a>
+</p>
+
+<script src="/static/js/dashboards.js" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var bars = document.getElementById("score-bars");
+    if (bars && window.ComplianceDashboards) {
+      window.ComplianceDashboards.renderScoreBars(
+        bars,
+        JSON.parse(bars.dataset.labels || "[]"),
+        JSON.parse(bars.dataset.values || "[]")
+      );
+    }
+    document.querySelectorAll(".sparkline-large").forEach(function (el) {
+      try {
+        var values = JSON.parse(el.dataset.values || "[]");
+        if (window.ComplianceDashboards) {
+          window.ComplianceDashboards.renderSparkline(el, values);
+        }
+      } catch (e) { /* ignore */ }
+    });
+  });
+</script>
+{% endblock %}

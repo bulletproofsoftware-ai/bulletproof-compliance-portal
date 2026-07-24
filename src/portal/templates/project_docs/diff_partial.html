@@ -1,0 +1,11 @@
+{# REQ-CPL-044 — diff view (HTMX partial). #}
+<h3>Diff <span class="mono">{{ from_sha[:8] }} → {{ to_sha[:8] }}</span></h3>
+<p class="muted">Document <span class="mono">{{ doc_path }}</span></p>
+{% if diff.diff_text %}
+  <pre class="mono" style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 0.75rem; overflow-x: auto">{% for line in diff.diff_text.splitlines() %}{% if line.startswith('+') %}<span style="color: #047857">{{ line }}</span>
+{% elif line.startswith('-') %}<span style="color: #b91c1c">{{ line }}</span>
+{% else %}{{ line }}
+{% endif %}{% endfor %}</pre>
+{% else %}
+  <p class="muted">No textual difference.</p>
+{% endif %}

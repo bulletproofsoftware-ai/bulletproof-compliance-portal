@@ -1,0 +1,26 @@
+{% import "_macros.html" as macros %}
+{{ macros.section("Audit Event") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Event ID", event.id if event else document_id) }}
+    {{ macros.kv_row("Type", event.audit_type if event else "—") }}
+    {{ macros.kv_row("User", event.user_id if event else "—") }}
+    {{ macros.kv_row("Classification", event.classification if event else "—") }}
+    {{ macros.kv_row("Timestamp (UTC)", event.ts if event else "—") }}
+    {{ macros.kv_row("Hash", event.hash if event else "—") }}
+    {{ macros.kv_row("Previous hash", event.prev_hash if event else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Payload") }}
+{% if event and event.payload %}
+<table class="kv">
+  <tbody>
+    {% for k, v in event.payload.items() %}
+      {{ macros.kv_row(k, v) }}
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No payload recorded.</p>
+{% endif %}

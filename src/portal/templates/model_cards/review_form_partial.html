@@ -1,0 +1,7 @@
+<div class="alert-success">
+  Review <span class="mono">{{ review.review_id }}</span> updated to state <strong>{{ review.state }}</strong>.
+  {% if review.signature %}
+    <br>Signed by <span class="mono">{{ review.signed_by }}</span> with key <span class="mono">{{ review.signing_key_id }}</span>.
+  {% endif %}
+</div>
+<p><a href="/models/{{ card.model_id }}">Reload model →</a></p>

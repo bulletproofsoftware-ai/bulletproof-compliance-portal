@@ -1,0 +1,21 @@
+{# REQ-CPL-043 — search results partial (HTMX). #}
+{% if query %}
+  <h3>Results for "<span class="mono">{{ query }}</span>" ({{ total }})</h3>
+  {% if results %}
+    <ul>
+      {% for hit in results %}
+        <li>
+          <a href="/projects/{{ hit.project_id }}/docs/{{ hit.doc_path }}">{{ hit.title }}</a>
+          <span class="muted mono">[{{ hit.project_id }}/{{ hit.doc_path }}]</span>
+          <br><span class="muted">{{ hit.snippet }}</span>
+          <br><span class="muted mono">score {{ "%.2f" % hit.score }}
+          · {{ hit.last_modified }}{% if hit.author %} · {{ hit.author }}{% endif %}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No matching documents.</p>
+  {% endif %}
+{% else %}
+  <p class="muted">Type a query to search.</p>
+{% endif %}

@@ -1,0 +1,20 @@
+{# YAML modify editor — re-rendered with errors when validation fails. #}
+<form hx-post="/knowledge/{{ candidate.candidate_id }}/modify"
+      hx-target="this"
+      hx-swap="outerHTML">
+  {% if errors %}
+    <div class="alert-error">
+      <strong>Validation failed:</strong>
+      <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+  <div class="form-row">
+    <label>Modified YAML</label>
+    <textarea name="modified_yaml" rows="14" class="mono">{{ modified_yaml }}</textarea>
+  </div>
+  <div class="form-row">
+    <label>Rationale (optional, >= 30 chars when provided)</label>
+    <textarea name="rationale" rows="2"></textarea>
+  </div>
+  <button type="submit">Save</button>
+</form>

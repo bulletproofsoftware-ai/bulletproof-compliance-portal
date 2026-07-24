@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Agent Economics{% endblock %}
+{% block content %}
+<h1>Agent economics</h1>
+<p class="muted">REQ-CPL-032 — period <span class="mono">{{ period_start }}</span>
+  → <span class="mono">{{ period_end }}</span></p>
+
+<details class="filters">
+  <summary>Filters</summary>
+  <form method="get" action="/outcomes/agent-economics">
+    <input type="hidden" name="period_start" value="{{ period_start }}">
+    <input type="hidden" name="period_end" value="{{ period_end }}">
+    <div class="form-row">
+      <label>Agent</label>
+      <input type="text" name="agent" value="{{ agent_filter or '' }}" placeholder="e.g. conductor-builder">
+    </div>
+    <div class="form-row">
+      <label>Workflow</label>
+      <input type="text" name="workflow" value="{{ workflow_filter or '' }}">
+    </div>
+    <div class="form-row">
+      <label>Project</label>
+      <input type="text" name="project" value="{{ project_filter or '' }}">
+    </div>
+    <button type="submit">Filter</button>
+  </form>
+</details>
+
+<div class="panel">
+  <h2>Rows ({{ economics.items|length }})</h2>
+  {% if economics.items %}
+    <table>
+      <thead>
+        <tr>
+          <th>Agent</th>
+          <th>Workflow</th>
+          <th>Project</th>
+          <th>Invocations</th>
+          <th>Total cost</th>
+          <th>Avg/invocation</th>
+          <th>Quality avg</th>
+          <th>Success rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in economics.items %}
+          <tr>
+            <td><span class="mono">{{ r.agent_name }}</span></td>
+            <td>{{ r.workflow or "—" }}</td>
+            <td>{{ r.project or "—" }}</td>
+            <td>{{ r.invocations }}</td>
+            <td>${{ "%.2f" % r.total_cost_usd }}</td>
+            <td>${{ "%.4f" % r.avg_cost_per_invocation_usd }}</td>
+            <td>{{ "%.1f" % r.quality_avg }}</td>
+            <td>{{ "%.1f" % (r.success_rate * 100) }}%</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No rows match.</p>
+  {% endif %}
+</div>
+
+<p><a href="/outcomes">Back to overview</a></p>
+{% endblock %}

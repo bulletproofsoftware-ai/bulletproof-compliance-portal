@@ -1,0 +1,17 @@
+{# Sidebar partial; consumes `nav` (list[NavGroup]) #}
+<nav class="sidebar" aria-label="Primary">
+  {% for group in nav %}
+    <div class="nav-group">
+      <div class="nav-group-label">{{ group.label }}</div>
+      <ul class="nav-list">
+        {% for item in group.items %}
+          <li>
+            <a href="{{ item.href }}"
+               class="nav-link{% if item.active %} active{% endif %}"
+               {% if item.active %}aria-current="page"{% endif %}>{{ item.label }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+</nav>

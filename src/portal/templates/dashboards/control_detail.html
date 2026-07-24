@@ -1,0 +1,43 @@
+{# Control detail (HTMX partial OR full page). #}
+<h3>{{ framework_label }} — Control <span class="mono">{{ control.control_id }}</span></h3>
+<p>
+  <strong>{{ control.title }}</strong>
+</p>
+{% if control.description %}<p>{{ control.description }}</p>{% endif %}
+
+<table>
+  <tbody>
+    <tr><th>Status</th>
+      <td>
+        {% if control.status == "passing" %}
+          <span class="badge badge-public">passing</span>
+        {% elif control.status == "partial" %}
+          <span class="badge badge-confidential">partial</span>
+        {% elif control.status == "failing" %}
+          <span class="badge badge-restricted">failing</span>
+        {% else %}
+          <span class="badge badge-unknown">{{ control.status }}</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% if control.score is not none %}
+      <tr><th>Score</th><td>{{ "%.1f" % control.score }}</td></tr>
+    {% endif %}
+    {% if control.last_evaluated_at %}
+      <tr><th>Last evaluated</th><td><span class="mono">{{ control.last_evaluated_at }}</span></td></tr>
+    {% endif %}
+    {% if control.evidence_package_ids %}
+      <tr><th>Evidence packages</th>
+        <td>
+          {% for eid in control.evidence_package_ids %}
+            <a href="/evidence/{{ eid }}"><span class="mono">{{ eid }}</span></a>{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </td>
+      </tr>
+    {% endif %}
+  </tbody>
+</table>
+
+{% if control.notes %}
+  <div class="panel"><h4>Notes</h4><p>{{ control.notes }}</p></div>
+{% endif %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1>Home</h1>
+<p class="muted">Your compliance workspace at a glance.</p>
+
+{% if errors %}
+  <div class="alert-warn">Some sections are temporarily unavailable: {{ errors|join(", ") }}.</div>
+{% endif %}
+
+{% if kpis %}
+<div class="kpi-grid">
+  {% for k in kpis %}
+    <a class="kpi-card" href="{{ k.href }}">
+      <div class="kpi-value">{{ k.value }}</div>
+      <div class="kpi-label">{{ k.label }}</div>
+    </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Needs your attention</h2>
+  {% if attention %}
+    <table>
+      <tbody>
+        {% for a in attention %}
+          <tr>
+            <td><span class="badge badge-{{ 'restricted' if a.severity == 'high' else 'confidential' if a.severity == 'medium' else 'internal' }}">{{ a.severity }}</span></td>
+            <td><a href="{{ a.href }}">{{ a.label }}</a></td>
+            <td class="muted">{{ a.detail }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">Nothing needs your attention right now.</p>
+  {% endif %}
+</div>
+
+{% if activity %}
+<div class="panel">
+  <h2>Recent activity</h2>
+  <table>
+    <thead><tr><th>When</th><th>Event</th><th>Actor</th></tr></thead>
+    <tbody>
+      {% for e in activity %}
+        <tr>
+          <td class="mono">{{ e.ts }}</td>
+          <td>{{ e.audit_type }}</td>
+          <td class="muted">{{ e.user_id or "—" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p><a href="/audit">View full audit trail →</a></p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}New EU AI Act Report{% endblock %}
+{% block content %}
+<h1>EU AI Act Conformity Declaration</h1>
+<p class="muted">REQ-CPL-024 — per high-risk system change.</p>
+
+<form method="post" action="/reports/generate" class="panel">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="report_type" value="eu_ai_act_conformity">
+  <div class="form-row">
+    <label for="high_risk_system_change_id">High-risk system change ID</label>
+    <input type="text" id="high_risk_system_change_id" name="high_risk_system_change_id" required>
+  </div>
+  <div class="form-row">
+    <label for="system_name">System name</label>
+    <input type="text" id="system_name" name="system_name" required>
+  </div>
+  <div class="form-row">
+    <label for="intended_purpose">Intended purpose</label>
+    <textarea id="intended_purpose" name="intended_purpose" rows="2" required></textarea>
+  </div>
+  <div class="form-row">
+    <label for="model_card_id">Linked model card (WI-11)</label>
+    <input type="text" id="model_card_id" name="model_card_id">
+  </div>
+  <div class="form-row">
+    <label for="scope_notes">Risk-management summary / conformity assessment route</label>
+    <textarea id="scope_notes" name="scope_notes" rows="3"></textarea>
+  </div>
+  <button type="submit">Generate draft</button>
+</form>
+{% endblock %}

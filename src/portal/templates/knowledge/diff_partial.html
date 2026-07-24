@@ -1,0 +1,18 @@
+{# YAML diff (HTMX partial). #}
+<table class="mono">
+  <tbody>
+    {% for line in diff %}
+      {% if line.kind == "addition" %}
+        <tr style="background: #ecfdf5"><td>+ {{ line.text }}</td></tr>
+      {% elif line.kind == "deletion" %}
+        <tr style="background: #fef2f2"><td>- {{ line.text }}</td></tr>
+      {% elif line.kind == "header" %}
+        <tr style="background: #eff6ff"><td><strong>{{ line.text }}</strong></td></tr>
+      {% elif line.kind == "hunk" %}
+        <tr style="background: #f3f4f6"><td><em>{{ line.text }}</em></td></tr>
+      {% else %}
+        <tr><td>&nbsp; {{ line.text }}</td></tr>
+      {% endif %}
+    {% endfor %}
+  </tbody>
+</table>

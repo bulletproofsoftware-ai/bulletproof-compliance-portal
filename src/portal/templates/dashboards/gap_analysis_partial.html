@@ -1,0 +1,46 @@
+{# REQ-CPL-027 — gap analysis drill-down (HTMX partial). #}
+<h3>{{ framework_label }} — Open gaps ({{ gaps.gaps|length }})</h3>
+<p class="muted">As of <span class="mono">{{ gaps.asof }}</span></p>
+{% if gaps.gaps %}
+<table>
+  <thead>
+    <tr>
+      <th>Control</th>
+      <th>Title</th>
+      <th>Impact</th>
+      <th>Status</th>
+      <th>Assignee</th>
+      <th>Due</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for g in gaps.gaps %}
+      <tr>
+        <td>
+          <a href="/dashboards/{{ framework }}/controls/{{ g.control_id }}"
+             hx-get="/dashboards/{{ framework }}/controls/{{ g.control_id }}"
+             hx-target="#gap-area"
+             hx-swap="innerHTML">{{ g.control_id }}</a>
+        </td>
+        <td>{{ g.title }}</td>
+        <td>
+          {% if g.impact == "high" %}
+            <span class="badge badge-restricted">high</span>
+          {% elif g.impact == "medium" %}
+            <span class="badge badge-confidential">medium</span>
+          {% else %}
+            <span class="badge badge-internal">low</span>
+          {% endif %}
+        </td>
+        <td>{{ g.status }}</td>
+        <td>{{ g.assignee or "—" }}</td>
+        <td>
+          {% if g.due_date %}<span class="mono">{{ g.due_date }}</span>{% else %}—{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No open gaps. </p>
+{% endif %}

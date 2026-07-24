@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, kpi_cards, breadcrumbs, empty_state %}
+{% block title %}SLA Trends{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "SLA Trends",
+  "Human-gate decision turnaround over time. A decision is on-time within the %sh target."|format(data.sla_hours),
+  "REQ-CPL-009") }}
+
+{% set pts = data.get("points") or [] %}
+{% if pts %}
+{{ kpi_cards([
+  {"label": "Decisions", "value": data.total},
+  {"label": "SLA target", "value": "%sh"|format(data.sla_hours)},
+  {"label": "Periods", "value": pts|length},
+]) }}
+<div class="panel">
+  <h3>By week</h3>
+  <table>
+    <thead>
+      <tr><th>Week</th><th>Decisions</th><th>On time</th><th>On-time rate</th><th>Avg turnaround</th></tr>
+    </thead>
+    <tbody>
+      {% for p in pts %}
+        <tr>
+          <td class="mono">{{ p.period }}</td>
+          <td>{{ p.count }}</td>
+          <td>{{ p.on_time }}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span style="display:inline-block;height:8px;border-radius:4px;background:var(--green);width:{{ p.on_time_rate }}%;max-width:100%;"></span>
+              <span>{{ "%.0f" % p.on_time_rate }}%</span>
+            </div>
+          </td>
+          <td>{{ "%.1f" % p.avg_turnaround_hours }}h</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+{{ empty_state("No decision history yet.", "SLA trends appear once gate decisions are recorded.") }}
+{% endif %}
+<p><a href="/outcomes">← Back to outcomes</a></p>
+{% endblock %}

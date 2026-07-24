@@ -1,0 +1,17 @@
+<h3>Filtered evidence package</h3>
+{% if job.evidence_package_id %}
+  <div class="alert-success">
+    Evidence ready: <a href="/evidence/{{ job.evidence_package_id }}" class="mono">{{ job.evidence_package_id }}</a>
+  </div>
+{% elif job.job_id %}
+  <div class="alert-warn">
+    Evidence generation accepted (job <span class="mono">{{ job.job_id }}</span>, status <strong>{{ job.status }}</strong>).
+    Polling…
+  </div>
+  <div hx-post="/dsr/{{ dsr.request_id }}/generate-evidence"
+       hx-trigger="every 5s"
+       hx-target="#evidence-panel"
+       hx-swap="innerHTML"></div>
+{% else %}
+  <p class="muted">No evidence yet.</p>
+{% endif %}

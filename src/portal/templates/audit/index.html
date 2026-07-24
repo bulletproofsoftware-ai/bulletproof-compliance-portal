@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, breadcrumbs %}
+{% block title %}Audit Explorer{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "Audit Explorer",
+  "Chronological view of immutable audit events. Read-only — the portal never writes to the audit chain.",
+  "REQ-CPL-006") }}
+
+<details class="filters">
+  <summary>Filters</summary>
+  <form id="audit-filters"
+        hx-get="/audit/events"
+        hx-target="#audit-results"
+        hx-swap="innerHTML"
+        hx-trigger="change, submit">
+    <div class="form-row">
+      <label>Time range from</label>
+      <input type="datetime-local" name="from">
+    </div>
+    <div class="form-row">
+      <label>Time range to</label>
+      <input type="datetime-local" name="to">
+    </div>
+    <div class="form-row">
+      <label>User (OIDC sub)</label>
+      <input type="text" name="user_id" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label>Session ID</label>
+      <input type="text" name="session_id" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label>Event type</label>
+      <input type="text" name="event_type" placeholder="e.g. gate.decided" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label>Classification</label>
+      <select name="classification">
+        <option value="">— any —</option>
+        <option value="public">public</option>
+        <option value="internal">internal</option>
+        <option value="confidential">confidential</option>
+        <option value="restricted">restricted</option>
+      </select>
+    </div>
+    <button type="submit">Apply filters</button>
+    <a class="muted" href="/audit/export.jsonl" style="margin-left:1rem">Download JSONL export</a>
+  </form>
+</details>
+
+<div id="audit-results" class="panel"
+     hx-get="/audit/events"
+     hx-trigger="load">
+  <p class="muted">Loading audit events...</p>
+</div>
+{% endblock %}

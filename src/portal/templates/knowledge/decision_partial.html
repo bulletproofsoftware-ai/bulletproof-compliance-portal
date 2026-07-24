@@ -1,0 +1,13 @@
+{# Knowledge decision result (HTMX response). #}
+<div class="alert-success">
+  <strong>Candidate {{ action }}.</strong>
+  {% if candidate.decided_by %}
+    By <span class="mono">{{ candidate.decided_by }}</span>.
+  {% endif %}
+  {% if candidate.decided_at %}
+    On <span class="mono">{{ candidate.decided_at }}</span>.
+  {% endif %}
+</div>
+{% if candidate.rationale %}
+  <p class="muted">Rationale: {{ candidate.rationale }}</p>
+{% endif %}

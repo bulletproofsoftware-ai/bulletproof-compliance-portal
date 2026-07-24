@@ -1,0 +1,12 @@
+<h3>Secure delivery (one-time)</h3>
+<div class="alert-success">
+  Delivery token issued. AMD-16: the compliance service marks the token used
+  atomically on first download (subsequent reads → 410 Gone).
+</div>
+<table>
+  <tr><th>Package</th><td class="mono">{{ token.package_id }}</td></tr>
+  <tr><th>Version</th><td class="mono">{{ token.version }}</td></tr>
+  <tr><th>Expires</th><td>{{ token.expires_at.isoformat() }}</td></tr>
+</table>
+<p class="muted">Send the data subject this URL (token redacted in audit log):</p>
+<pre class="mono">/dsr/download/{{ token.token[:8] }}…</pre>

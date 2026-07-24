@@ -1,0 +1,40 @@
+{# Reusable index-pattern macros (Plan 2). Reuses base.html CSS classes. #}
+
+{% macro breadcrumbs(items) %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  {% for it in items %}
+    {%- if it.href and not loop.last %}<a href="{{ it.href }}">{{ it.label }}</a> ›
+    {% else %}<span aria-current="page">{{ it.label }}</span>{% endif -%}
+  {% endfor %}
+</nav>
+{% endmacro %}
+
+{% macro page_header(title, subtitle=None, req=None) %}
+<h1>{{ title }}</h1>
+{% if subtitle or req %}
+<p class="muted">
+  {% if subtitle %}{{ subtitle }}{% endif %}
+  {% if req %}<span class="mono" style="font-size:11px;">{{ req }}</span>{% endif %}
+</p>
+{% endif %}
+{% endmacro %}
+
+{% macro kpi_cards(cards) %}
+{% if cards %}
+<div class="kpi-grid">
+  {% for c in cards %}
+    {% if c.href %}<a class="kpi-card" href="{{ c.href }}">{% else %}<div class="kpi-card">{% endif %}
+      <div class="kpi-value">{{ c.value }}</div>
+      <div class="kpi-label">{{ c.label }}</div>
+    {% if c.href %}</a>{% else %}</div>{% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro empty_state(message, hint=None) %}
+<div class="muted" style="padding:1rem 0;">
+  <div>{{ message }}</div>
+  {% if hint %}<div style="font-size:12px;">{{ hint }}</div>{% endif %}
+</div>
+{% endmacro %}

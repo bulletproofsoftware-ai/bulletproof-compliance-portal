@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "_components.html" import breadcrumbs %}
+{% block title %}Knowledge Candidate {{ candidate.candidate_id }}{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "Knowledge", "href": "/knowledge"}, {"label": candidate.candidate_id}]) }}{% endblock %}
+{% block content %}
+<h1>Knowledge candidate <span class="mono">{{ candidate.candidate_id }}</span></h1>
+<p class="muted">
+  Type: <strong>{{ candidate.knowledge_type }}</strong> ·
+  Domain: <strong>{{ candidate.domain }}</strong> ·
+  Status: <strong>{{ candidate.status }}</strong>
+</p>
+
+<div class="panel">
+  <h3>Source attribution</h3>
+  <table>
+    <tbody>
+      <tr><th>Source type</th><td>{{ candidate.source.source_type }}</td></tr>
+      <tr><th>Source ID</th><td><span class="mono">{{ candidate.source.source_id }}</span></td></tr>
+      <tr><th>Confidence</th><td>{{ "%.2f" % candidate.source.confidence }}</td></tr>
+      {% if candidate.source.snippet %}
+        <tr><th>Snippet</th><td><pre class="mono">{{ candidate.source.snippet }}</pre></td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h3>YAML diff</h3>
+  <p class="muted">
+    +{{ diff_summary.additions }} additions, -{{ diff_summary.deletions }} deletions
+  </p>
+  {% include "knowledge/diff_partial.html" %}
+</div>
+
+{% if candidate.status == "pending" %}
+<div class="panel">
+  <h3>Decision</h3>
+  <p class="muted">SME accountability: rationale must be at least {{ min_rationale }} characters.</p>
+
+  <form hx-post="/knowledge/{{ candidate.candidate_id }}/approve"
+        hx-target="#decision-result"
+        hx-swap="innerHTML">
+    <div class="form-row">
+      <label>Approve rationale</label>
+      <textarea name="rationale" rows="3" minlength="{{ min_rationale }}" required></textarea>
+    </div>
+    <button type="submit">Approve</button>
+  </form>
+
+  <form hx-post="/knowledge/{{ candidate.candidate_id }}/reject"
+        hx-target="#decision-result"
+        hx-swap="innerHTML"
+        style="margin-top: 1rem">
+    <div class="form-row">
+      <label>Reject rationale</label>
+      <textarea name="rationale" rows="3" minlength="{{ min_rationale }}" required></textarea>
+    </div>
+    <button type="submit">Reject</button>
+  </form>
+
+  <details style="margin-top: 1rem">
+    <summary>Modify proposed YAML</summary>
+    <form hx-post="/knowledge/{{ candidate.candidate_id }}/modify"
+          hx-target="#decision-result"
+          hx-swap="innerHTML">
+      <div class="form-row">
+        <label>Modified YAML</label>
+        <textarea name="modified_yaml" rows="12" class="mono">{{ candidate.proposed_yaml }}</textarea>
+      </div>
+      <div class="form-row">
+        <label>Rationale (optional, but >= {{ min_rationale }} chars if provided)</label>
+        <textarea name="rationale" rows="2"></textarea>
+      </div>
+      <button type="submit">Save modification</button>
+    </form>
+  </details>
+</div>
+{% else %}
+<div class="panel">
+  <p>Decision finalized: <strong>{{ candidate.status }}</strong>
+  {% if candidate.decided_by %} by <span class="mono">{{ candidate.decided_by }}</span>{% endif %}
+  {% if candidate.decided_at %} on <span class="mono">{{ candidate.decided_at }}</span>{% endif %}.</p>
+  {% if candidate.rationale %}<p class="muted">{{ candidate.rationale }}</p>{% endif %}
+</div>
+{% endif %}
+
+<div id="decision-result" class="panel" style="display: block"></div>
+{% endblock %}

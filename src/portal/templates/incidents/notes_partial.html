@@ -1,0 +1,22 @@
+{% if incident.notes %}
+  <ul>
+    {% for note in incident.notes|reverse %}
+      <li>
+        <span class="mono">{{ note.created_at.isoformat() if note.created_at else "—" }}</span>
+        — <strong>{{ note.author_name or note.author_sub }}</strong>
+        {% if note.tags %}
+          {% for t in note.tags %}<span class="badge badge-internal">{{ t }}</span>{% endfor %}
+        {% endif %}
+        <div class="note-body">
+          {% if note.rendered_html %}
+            {{ note.rendered_html|safe }}
+          {% else %}
+            <pre class="mono">{{ note.content }}</pre>
+          {% endif %}
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="muted">No notes yet.</p>
+{% endif %}

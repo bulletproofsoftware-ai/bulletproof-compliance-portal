@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_components.html" import breadcrumbs %}
+{% block title %}{{ project.name }} — Project Docs{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "Projects", "href": "/projects"}, {"label": project.name}]) }}{% endblock %}
+{% block content %}
+<h1>{{ project.name }}</h1>
+<p class="muted">
+  <span class="mono">{{ project.project_id }}</span> ·
+  Tier <strong>{{ project.tier }}</strong> ·
+  Status <strong>{{ project.status }}</strong> ·
+  Last activity <span class="mono">{{ project.last_activity }}</span>
+</p>
+
+<div class="panel">
+  <p>
+    <a href="/projects/{{ project.project_id }}/api-docs">API docs</a> ·
+    <form id="search-form" style="display: inline"
+          hx-get="/projects/{{ project.project_id }}/search"
+          hx-target="#search-results"
+          hx-swap="innerHTML"
+          hx-trigger="keyup changed delay:300ms from:#search-q, submit">
+      <input type="search" id="search-q" name="q" placeholder="Search docs"
+             autocomplete="off">
+    </form> ·
+    <a href="/projects/{{ project.project_id }}/export.zip">Download ZIP</a>
+  </p>
+</div>
+
+<div id="search-results" class="panel" style="display: block"></div>
+
+<div class="panel">
+  <h2>Documents</h2>
+  {% include "project_docs/tree_partial.html" %}
+</div>
+{% endblock %}

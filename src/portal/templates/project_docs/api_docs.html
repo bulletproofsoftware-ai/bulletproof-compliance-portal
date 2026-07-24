@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} — API docs{% endblock %}
+{% block head_extra %}
+  <link rel="stylesheet" href="/static/css/swagger-ui.css">
+{% endblock %}
+{% block content %}
+<h1>{{ project.name }} — API documentation</h1>
+<p class="muted">
+  <a href="/projects/{{ project.project_id }}">← {{ project.project_id }}</a>
+</p>
+
+<div id="swagger-ui"></div>
+<p id="swagger-fallback" style="display: none">
+  <span class="muted">Swagger UI assets not bundled. Spec URL:</span>
+  <a id="swagger-fallback-link"></a>
+</p>
+
+<script src="/static/js/swagger-ui-bundle.js" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var openapiUrl = {{ openapi_url|tojson }};
+    if (typeof window.SwaggerUIBundle === "undefined") {
+      var fallback = document.getElementById("swagger-fallback");
+      var link = document.getElementById("swagger-fallback-link");
+      link.setAttribute("href", openapiUrl);
+      link.textContent = openapiUrl;
+      fallback.style.display = "block";
+      return;
+    }
+    window.SwaggerUIBundle({
+      url: openapiUrl,
+      dom_id: "#swagger-ui",
+      presets: [window.SwaggerUIBundle.presets.apis],
+      layout: "BaseLayout",
+      deepLinking: true,
+    });
+  });
+</script>
+{% endblock %}

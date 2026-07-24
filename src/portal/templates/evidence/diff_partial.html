@@ -1,0 +1,14 @@
+{# WI-05 — version diff partial #}
+<h3>Diff: <span class="mono">{{ diff.from_version }}</span> → <span class="mono">{{ diff.to_version }}</span></h3>
+{% if diff.binary %}
+  <p class="muted">Binary content; diff not available.</p>
+  <p class="muted">{{ diff.diff_text }}</p>
+{% else %}
+  <pre class="mono">{{ diff.diff_text }}</pre>
+{% endif %}
+<p>
+  <a href="#"
+     hx-get="/evidence/{{ package_id }}/versions"
+     hx-target="#evidence-detail"
+     hx-swap="innerHTML">← back to versions</a>
+</p>

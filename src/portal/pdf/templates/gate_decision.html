@@ -1,0 +1,29 @@
+{% import "_macros.html" as macros %}
+{{ macros.section("Human Gate Decision") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Gate ID", gate.id if gate else document_id) }}
+    {{ macros.kv_row("Type", gate.gate_type if gate else "—") }}
+    {{ macros.kv_row("Project", gate.project_id if gate else "—") }}
+    {{ macros.kv_row("Status", gate.status if gate else "—") }}
+    {{ macros.kv_row("Decision", gate.decision if gate else "—") }}
+    {{ macros.kv_row("Decided by", gate.decided_by if gate else "—") }}
+    {{ macros.kv_row("Decided at (UTC)", gate.decided_at if gate else "—") }}
+    {{ macros.kv_row("MFA at", gate.mfa_at if gate else "—") }}
+    {{ macros.kv_row("Hash", gate.hash if gate else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Rationale") }}
+<p class="rationale">{{ gate.rationale if gate and gate.rationale else "—" }}</p>
+
+{{ macros.section("Inputs Reviewed") }}
+{% if gate and gate.inputs %}
+<ul>
+  {% for item in gate.inputs %}
+  <li>{{ item }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>—</p>
+{% endif %}

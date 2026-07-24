@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, breadcrumbs, empty_state %}
+{% block title %}Search{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "Search"}]) }}{% endblock %}
+{% block content %}
+{{ page_header("Search", "Cross-area search over projects, gates, evidence, audit, and knowledge.") }}
+
+<form method="get" action="/search" class="panel">
+  <div class="form-row">
+    <label for="q">Query</label>
+    <input type="search" id="q" name="q" value="{{ q }}" autofocus
+           placeholder="e.g. a project name, gate, event type, or domain">
+  </div>
+  <button type="submit">Search</button>
+</form>
+
+{% if q.strip() %}
+  {% if results.get("error") %}
+    <div class="alert-warn">Search is temporarily unavailable. Please try again.</div>
+  {% elif results.get("items") %}
+    <div class="panel">
+      <h3>{{ results.total }} result(s) for "{{ q }}"</h3>
+      <table>
+        <thead><tr><th>Area</th><th>Result</th><th>Reference</th></tr></thead>
+        <tbody>
+          {% for hit in results["items"] %}
+            <tr>
+              <td><span class="badge badge-internal">{{ hit.category }}</span></td>
+              <td><a href="{{ hit.href }}">{{ hit.title }}</a></td>
+              <td class="mono muted">{{ hit.subtitle }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    {{ empty_state('No results for "%s".'|format(q), "Try a different term — names, IDs, event types, or domains.") }}
+  {% endif %}
+{% endif %}
+{% endblock %}

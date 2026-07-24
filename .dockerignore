@@ -1,0 +1,55 @@
+# Build-context pruning for Docker — keep the image small and out of leaky data.
+
+# Python
+.venv
+venv
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+*.egg-info
+build
+dist
+
+# VCS / IDE / OS
+.git
+.gitignore
+.github
+.gitlab
+.vscode
+.idea
+.DS_Store
+*.swp
+
+# Tests / docs (NOT shipped in the runtime image)
+tests
+docs
+PRD-*.md
+*.md
+!docker/README.md
+!docker/SBOM.md
+!docker/secrets.example/README.md
+
+# Conductor / agent state
+conductor-state.json
+BRD-tracker.json
+.conductor-cache
+.firecrawl
+
+# Env / secrets — must NEVER be in build context
+.env
+.env.*
+!.env.example
+docker/secrets/
+docker/certs/
+
+# Hostinger / external snapshots
+*.tgz
+*.tar
+*.tar.gz
+*.zip

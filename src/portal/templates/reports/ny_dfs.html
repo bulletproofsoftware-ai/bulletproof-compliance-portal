@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}New NY DFS Report{% endblock %}
+{% block content %}
+<h1>NY DFS Part 500 Certification</h1>
+<p class="muted">REQ-CPL-023 — annual certification with named certifier.</p>
+
+<form method="post" action="/reports/generate" class="panel">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="report_type" value="nydfs_part500">
+  <div class="form-row">
+    <label for="period_start">Period start</label>
+    <input type="text" id="period_start" name="period_start" required>
+  </div>
+  <div class="form-row">
+    <label for="period_end">Period end</label>
+    <input type="text" id="period_end" name="period_end" required>
+  </div>
+  <div class="form-row">
+    <label for="certifier_name">Certifier name</label>
+    <input type="text" id="certifier_name" name="certifier_name" required>
+  </div>
+  <div class="form-row">
+    <label for="certifier_title">Certifier title</label>
+    <input type="text" id="certifier_title" name="certifier_title" required>
+  </div>
+  <div class="form-row">
+    <label for="scope_notes">Scope notes (third-party providers, MFA coverage, etc.)</label>
+    <textarea id="scope_notes" name="scope_notes" rows="3"></textarea>
+  </div>
+  <button type="submit">Generate draft</button>
+</form>
+{% endblock %}

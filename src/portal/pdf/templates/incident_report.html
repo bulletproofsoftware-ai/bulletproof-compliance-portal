@@ -1,0 +1,39 @@
+{% import "_macros.html" as macros %}
+{{ macros.section("Incident Report") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Incident ID", incident.id if incident else document_id) }}
+    {{ macros.kv_row("Severity", incident.severity if incident else "—") }}
+    {{ macros.kv_row("Status", incident.status if incident else "—") }}
+    {{ macros.kv_row("Detected (UTC)", incident.detected_at if incident else "—") }}
+    {{ macros.kv_row("Resolved (UTC)", incident.resolved_at if incident else "—") }}
+    {{ macros.kv_row("Affected systems", incident.affected_systems | join(', ') if incident and incident.affected_systems else "—") }}
+    {{ macros.kv_row("Reporter", incident.reporter if incident else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Summary") }}
+<p>{{ incident.summary if incident and incident.summary else "—" }}</p>
+
+{{ macros.section("Timeline") }}
+{% if incident and incident.timeline %}
+<table class="data-table">
+  <thead>
+    <tr><th>Timestamp</th><th>Actor</th><th>Event</th></tr>
+  </thead>
+  <tbody>
+    {% for t in incident.timeline %}
+    <tr>
+      <td>{{ t.timestamp }}</td>
+      <td>{{ t.actor }}</td>
+      <td>{{ t.event }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>—</p>
+{% endif %}
+
+{{ macros.section("Lessons Learned") }}
+<p>{{ incident.lessons_learned if incident and incident.lessons_learned else "—" }}</p>

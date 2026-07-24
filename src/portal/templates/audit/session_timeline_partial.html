@@ -1,0 +1,28 @@
+{# WI-04 — session timeline reconstruction #}
+<div class="panel">
+  <h2>Session timeline: <span class="mono">{{ session_id }}</span></h2>
+  {% if events.items %}
+    <ol>
+      {% for ev in events.items %}
+        <li style="margin-bottom:0.5rem">
+          <span class="mono">{{ ev.ts.isoformat() if ev.ts else "—" }}</span>
+          &middot;
+          <strong>{{ ev.audit_type }}</strong>
+          &middot;
+          <span class="{{ ev.classification|classification_badge }}">{{ ev.classification or "?" }}</span>
+          &middot;
+          <a href="#"
+             hx-get="/audit/events/{{ ev.event_id }}"
+             hx-target="#cp-modal-body"
+             hx-swap="innerHTML">details</a>
+        </li>
+      {% endfor %}
+    </ol>
+    <p class="muted">{{ events.items|length }} event(s) in this session.</p>
+    <p>
+      <a href="/export/pdf/session_timeline/{{ session_id }}">Export timeline as PDF</a>
+    </p>
+  {% else %}
+    <p class="muted">No events recorded for this session id.</p>
+  {% endif %}
+</div>

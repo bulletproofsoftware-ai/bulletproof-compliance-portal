@@ -1,0 +1,17 @@
+{# WI-05 — re-verify result partial #}
+<h3>Signature verification</h3>
+<p>
+  <strong>Status:</strong>
+  {% if signature.valid %}
+    <span class="badge badge-public">VALID</span>
+  {% else %}
+    <span class="badge badge-restricted">INVALID</span>
+  {% endif %}
+</p>
+<p>
+  <strong>Algorithm:</strong> {{ signature.algorithm }}<br>
+  <strong>Key id:</strong> <span class="mono">{{ signature.signing_key_id or "—" }}</span><br>
+  <strong>Signed at:</strong>
+  <span class="mono">{{ signature.signed_at.isoformat() if signature.signed_at else "—" }}</span>
+</p>
+{% if signature.note %}<p class="muted">{{ signature.note }}</p>{% endif %}

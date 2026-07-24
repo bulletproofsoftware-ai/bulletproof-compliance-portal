@@ -1,0 +1,33 @@
+{% import "_macros.html" as macros %}
+{{ macros.section("Evidence Package") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Package ID", package.id if package else document_id) }}
+    {{ macros.kv_row("Project", package.project_id if package else "—") }}
+    {{ macros.kv_row("Created", package.created_at if package else "—") }}
+    {{ macros.kv_row("Created by", package.created_by if package else "—") }}
+    {{ macros.kv_row("Status", package.status if package else "—") }}
+    {{ macros.kv_row("Manifest hash", package.manifest_sha256 if package else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Artifacts") }}
+{% if package and package.artifacts %}
+<table class="data-table">
+  <thead>
+    <tr><th>Type</th><th>ID</th><th>Hash</th><th>Captured</th></tr>
+  </thead>
+  <tbody>
+    {% for a in package.artifacts %}
+    <tr>
+      <td>{{ a.type }}</td>
+      <td>{{ a.id }}</td>
+      <td><code>{{ a.sha256 }}</code></td>
+      <td>{{ a.captured_at }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No artifacts in package.</p>
+{% endif %}

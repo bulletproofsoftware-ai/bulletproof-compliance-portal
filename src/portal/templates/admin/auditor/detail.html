@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Engagement {{ engagement.engagement_id }}{% endblock %}
+{% block content %}
+<h1>Engagement {{ engagement.engagement_id }}</h1>
+<p>
+  <strong>Auditor:</strong> <span class="mono">{{ engagement.auditor_email }}</span><br>
+  <strong>Auditor sub:</strong> <span class="mono">{{ engagement.auditor_sub or "—" }}</span><br>
+  <strong>State:</strong>
+  {% if engagement.state == "active" %}
+    <span class="badge badge-public">active</span>
+  {% elif engagement.state == "revoked" %}
+    <span class="badge badge-restricted">revoked</span>
+  {% else %}
+    <span class="badge badge-internal">{{ engagement.state }}</span>
+  {% endif %}
+</p>
+<p>
+  <strong>Engagement window:</strong>
+  <span class="mono">{{ engagement.engagement_start.isoformat() }}</span> →
+  <span class="mono">{{ engagement.engagement_end.isoformat() }}</span><br>
+  <strong>Data scope window:</strong>
+  <span class="mono">{{ engagement.date_range_start.isoformat() }}</span> →
+  <span class="mono">{{ engagement.date_range_end.isoformat() }}</span>
+</p>
+<p>
+  <strong>Allowed artifact types:</strong>
+  <span class="mono">{{ engagement.allowed_artifact_types | join(", ") }}</span>
+</p>
+{% if engagement.revoked_at %}
+  <div class="alert-warn">
+    Revoked at <span class="mono">{{ engagement.revoked_at.isoformat() }}</span>
+    by <span class="mono">{{ engagement.revoked_by or "—" }}</span>
+    {% if engagement.revoked_reason %}— {{ engagement.revoked_reason }}{% endif %}
+  </div>
+{% endif %}
+
+{% if engagement.state == "active" %}
+<div class="panel">
+  <h3>Revoke engagement (instant)</h3>
+  <form method="post" action="/admin/auditor-engagements/{{ engagement.engagement_id }}/revoke">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-row">
+      <label>Reason</label>
+      <input type="text" name="reason" required minlength="10">
+    </div>
+    <button type="submit">Revoke now</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h3>Access log (every artifact view recorded — REQ-CPL-034)</h3>
+  {% if access_log.items %}
+  <table>
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Artifact type</th>
+        <th>Artifact id</th>
+        <th>Action</th>
+        <th>IP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in access_log.items %}
+        <tr>
+          <td class="mono">{{ entry.accessed_at.isoformat() }}</td>
+          <td>{{ entry.artifact_type }}</td>
+          <td class="mono">{{ entry.artifact_id }}</td>
+          <td>{{ entry.action }}</td>
+          <td class="mono">{{ entry.ip or "—" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No artifact views recorded yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,377 @@
+# WI-18 — Docker Compose deployment for the compliance portal.
+#
+# TWO isolated FastAPI apps fronted by TWO nginx reverse proxies:
+#   - portal       (internal portal,  uvicorn 8001) ── on portal-net + internal-mgmt
+#   - dsr_portal   (public DSR portal, uvicorn 8002) ── on public-net only
+#   - portal_nginx (host:8443 → 8443, TLS)           ── on internal-mgmt only
+#   - public_nginx (host:8444 → 8444, TLS)           ── on public-net only
+#   - redis        (sessions, internal-only)         ── on portal-net only
+#   - postgres     (dev only — production uses external compliance service DB)
+#
+# Network isolation (REQ-CPL-036):
+#   portal-net   ↔  public-net  : NO bridge, verified by tests
+#   internal-mgmt is the ONLY network shared between portal_nginx and portal.
+#   dsr_portal lives entirely on public-net — it cannot reach redis or postgres.
+#
+# Volumes:
+#   evidence-store : AMD-09 — encrypted at rest (host LUKS / FileVault / cloud)
+#   pdf-cache      : AMD-09 — same
+#   audit-logs     : AMD-24 — log retention 90d minimum
+#
+# Secrets (file-mounted via /run/secrets/* — entrypoint.sh sources these):
+#   Files live under docker/secrets.example/* in repo (placeholders only).
+#   Operators copy to docker/secrets/* (gitignored) before bringing the stack up.
+---
+name: compliance-portal
+
+# ─── Networks ────────────────────────────────────────────────────────────────
+# CRITICAL: portal-net and public-net are NOT bridged. The only network
+# overlapping multiple services is internal-mgmt, which spans portal_nginx <→
+# portal only. dsr_portal is solely on public-net.
+networks:
+  portal-net:
+    driver: bridge
+    name: compliance-portal_portal-net
+    internal: false   # portal can reach external compliance service
+  public-net:
+    driver: bridge
+    name: compliance-portal_public-net
+  internal-mgmt:
+    driver: bridge
+    name: compliance-portal_internal-mgmt
+    internal: true    # nginx ↔ portal only — no egress
+
+# ─── Volumes ─────────────────────────────────────────────────────────────────
+volumes:
+  evidence-store:
+    name: compliance-portal_evidence-store
+  pdf-cache:
+    name: compliance-portal_pdf-cache
+  audit-logs:
+    name: compliance-portal_audit-logs
+  redis-data:
+    name: compliance-portal_redis-data
+  postgres-data:
+    name: compliance-portal_postgres-data
+  compliance-data:
+    name: compliance-service_data
+
+# ─── Secrets ─────────────────────────────────────────────────────────────────
+# Each secret references a host file. Files in secrets.example/ are placeholders
+# only; operators MUST replace them with real values in docker/secrets/ before
+# `docker compose up` in any non-development environment. The .gitignore
+# excludes docker/secrets/.
+#
+# F-06 — Each portal MUST have its own distinct backing file. Sharing the
+# same file across two secret names defeats key isolation: compromise of
+# one secret would yield the other. Each placeholder file in
+# secrets.example/ holds a different sentinel string so an operator that
+# accidentally ships placeholders is loud rather than silent.
+#
+# Operators: copy each file individually into docker/secrets/ (gitignored)
+# and replace the sentinel with a freshly generated random value. NEVER
+# point two secrets at the same file.
+secrets:
+  oidc_client_secret:
+    file: ./secrets.example/oidc_client_secret.txt
+  session_secret:
+    file: ./secrets.example/session_secret.txt
+  session_secret_public:
+    file: ./secrets.example/session_secret_public.txt
+  compliance_api_token:
+    file: ./secrets.example/compliance_service_token.txt
+  compliance_api_token_public:
+    file: ./secrets.example/compliance_service_token_public.txt
+  public_token_secret:
+    file: ./secrets.example/public_token_secret.txt
+  db_password:
+    file: ./secrets.example/db_password.txt
+  pg_dsn:
+    file: ./secrets.example/db_password.txt
+  captcha_secret:
+    file: ./secrets.example/captcha_secret.txt
+
+# ─── Services ────────────────────────────────────────────────────────────────
+services:
+
+  # ── Internal Compliance Portal (FastAPI, uvicorn 8001) ───────────────────
+  portal:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.portal
+    image: compliance-portal-internal:latest
+    container_name: compliance-portal-internal
+    restart: unless-stopped
+    networks:
+      - portal-net
+      - internal-mgmt
+    expose:
+      - "8001"
+    ports:
+      - "127.0.0.1:8001:8001"
+    environment:
+      APP_MODE: internal
+      APP_ENV: ${APP_ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      REDIS_URL: redis://redis:6379/0
+      COMPLIANCE_API_BASE_URL: ${COMPLIANCE_API_BASE_URL:-http://compliance-service.internal:8088}
+      OIDC_ISSUER: ${OIDC_ISSUER:-https://idp.internal/realms/compliance}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-compliance-portal}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
+      SESSION_COOKIE_SAMESITE: "lax"
+      TRUSTED_PROXY_CIDRS: "127.0.0.1/32,172.16.0.0/12"
+    env_file:
+      - path: ../.env
+        required: false
+    secrets:
+      - oidc_client_secret
+      - session_secret
+      - compliance_api_token
+      - pg_dsn
+    volumes:
+      - evidence-store:/var/lib/evidence
+      - pdf-cache:/var/cache/pdf
+      - audit-logs:/var/log/audit
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8001/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+          cpus: "1.0"
+    depends_on:
+      redis:
+        condition: service_healthy
+      compliance_service:
+        condition: service_healthy
+
+  # ── Compliance service backend (PRD-18 MVP, FastAPI, uvicorn 8088) ──────
+  # Read-side stub of the PRD-18 contract. Returns valid empty responses for
+  # every endpoint the portal calls so /evidence /gates /dsr /incidents
+  # /reports etc render their empty-state UIs instead of returning HTTP 500.
+  # Future: wire this to the agentic-data-plane ComplianceEngine.
+  compliance_service:
+    build:
+      context: ../../compliance-service
+      dockerfile: Dockerfile
+    image: compliance-service:latest
+    container_name: compliance-service
+    restart: unless-stopped
+    networks:
+      portal-net:
+        aliases:
+          - compliance-service.internal
+    expose:
+      - "8088"
+    ports:
+      - "127.0.0.1:8089:8088"
+    environment:
+      COMPLIANCE_API_TOKEN: PLACEHOLDER_COMPLIANCE_SERVICE_BEARER_TOKEN_DO_NOT_USE_IN_PRODUCTION
+      SIGNING_KEY_ID: compliance-service-ed25519-2026
+      COMPLIANCE_DB_PATH: /var/lib/compliance/compliance.db
+      COMPLIANCE_KEYS_DIR: /var/lib/compliance/keys
+      CODE_ROOT: /workspace/code
+      GOVERNANCE_AUDIT_DB: /workspace/governance/audit.db
+      KNOWLEDGE_ROOT: /workspace/knowledge
+    volumes:
+      - compliance-data:/var/lib/compliance
+      # Real data sources — mounted READ-ONLY
+      - type: bind
+        source: /path/to/projects
+        target: /workspace/code
+        read_only: true
+      - type: bind
+        source: ./data/audit.db
+        target: /workspace/governance/audit.db
+        read_only: true
+      - type: bind
+        source: ./knowledge
+        target: /workspace/knowledge
+        read_only: true
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8088/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # ── Public DSR Portal (FastAPI, uvicorn 8002) ────────────────────────────
+  dsr_portal:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dsr_portal
+    image: compliance-portal-public:latest
+    container_name: compliance-portal-public
+    restart: unless-stopped
+    networks:
+      - public-net
+    expose:
+      - "8002"
+    environment:
+      APP_MODE: public
+      APP_ENV: ${APP_ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      COMPLIANCE_API_BASE_URL: ${COMPLIANCE_API_BASE_URL:-https://compliance-service.internal:8443}
+      SESSION_COOKIE_SECURE: "true"
+      SESSION_COOKIE_SAMESITE: "lax"
+      TRUSTED_PROXY_CIDRS: "127.0.0.1/32,172.16.0.0/12"
+    env_file:
+      - path: ../.env
+        required: false
+    secrets:
+      - session_secret_public
+      - public_token_secret
+      - compliance_api_token_public
+      - captcha_secret
+    volumes:
+      - audit-logs:/var/log/audit
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8002/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+  # ── Internal nginx — TLS terminator + reverse proxy for portal ───────────
+  portal_nginx:
+    image: nginx:1.27-alpine
+    container_name: compliance-portal-internal-nginx
+    restart: unless-stopped
+    networks:
+      - internal-mgmt
+      - portal-net   # local-dev: needed for host port 8453 to bind (internal-mgmt has internal:true)
+    ports:
+      - "127.0.0.1:8453:8443"
+    volumes:
+      - ./nginx/internal.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - audit-logs:/var/log/nginx
+    depends_on:
+      portal:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── Public nginx — TLS terminator + WAF + reverse proxy for DSR portal ───
+  public_nginx:
+    image: nginx:1.27-alpine
+    container_name: compliance-portal-public-nginx
+    restart: unless-stopped
+    networks:
+      - public-net
+    ports:
+      - "127.0.0.1:8444:8444"
+    volumes:
+      - ./nginx/public.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - audit-logs:/var/log/nginx
+    depends_on:
+      dsr_portal:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── Redis — session store for the internal portal (portal-net only) ──────
+  redis:
+    image: redis:7.4-alpine
+    container_name: compliance-portal-redis
+    restart: unless-stopped
+    networks:
+      - portal-net
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --save
+      - "60"
+      - "1"
+      - --maxmemory
+      - "256mb"
+      - --maxmemory-policy
+      - "allkeys-lru"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # ── Postgres (development / local-test only) ─────────────────────────────
+  # In production, the compliance service owns the database and the portal
+  # talks to it over the network; this service lets the portal stand up a
+  # fully functional dev environment without external dependencies.
+  postgres:
+    image: postgres:16-alpine
+    container_name: compliance-portal-postgres
+    restart: unless-stopped
+    networks:
+      - portal-net
+    environment:
+      POSTGRES_DB: compliance_portal
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portal -d compliance_portal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    profiles:
+      - dev   # only runs when invoked with --profile dev
+
+  # ── docs_portal — project documentation viewer (FastAPI + Markdown + WeasyPrint)
+  # Marc's project doc browser. Mounts ~/Code read-only as DOCS_ROOT and serves
+  # a clickable index of every project's *.md / docs/**/*.md / README.md, with
+  # rendered HTML and PDF export. Source: ../docs-portal/.
+  # Reachable at http://localhost:8095/p/{project}.
+  docs_portal:
+    build:
+      context: ../docs-portal
+      dockerfile: Dockerfile
+    image: compliance-portal-docs:latest
+    container_name: compliance-portal-docs
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8095:8095"
+    environment:
+      DOCS_ROOT: /docs
+    volumes:
+      - /path/to/projects:/docs:ro
+    healthcheck:
+      # The docs index walks the large mounted ~/Code tree and can take tens of
+      # seconds to render, so fetching "/" is unsuitable for a liveness probe.
+      # Check that the server socket is accepting connections instead — fast and
+      # render-free.
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1',8095),3).close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

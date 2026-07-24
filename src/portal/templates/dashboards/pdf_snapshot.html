@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ framework_label }} — Compliance Snapshot</title>
+</head>
+<body>
+  <h1>{{ framework_label }}</h1>
+  <p>As of {{ scores.asof }}</p>
+  <p><strong>Overall score:</strong> {{ "%.1f" % scores.overall_score }}
+     {% if scores.regression_flag %}(regression){% endif %}</p>
+
+  <h2>Per-domain scores</h2>
+  <table>
+    <thead><tr><th>Domain</th><th>Score</th></tr></thead>
+    <tbody>
+      {% for d in scores.domain_scores %}
+        <tr><td>{{ d.domain }}</td><td>{{ "%.1f" % d.score }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Open gaps ({{ gaps.gaps|length }})</h2>
+  {% if gaps.gaps %}
+  <table>
+    <thead><tr><th>Control</th><th>Title</th><th>Impact</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for g in gaps.gaps %}
+        <tr>
+          <td>{{ g.control_id }}</td>
+          <td>{{ g.title }}</td>
+          <td>{{ g.impact }}</td>
+          <td>{{ g.status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>No open gaps.</p>
+  {% endif %}
+</body>
+</html>

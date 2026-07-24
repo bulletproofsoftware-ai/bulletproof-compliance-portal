@@ -1,0 +1,31 @@
+{% import "_macros.html" as macros %}
+{{ macros.section("Process Knowledge Entry") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Entry ID", entry.id if entry else document_id) }}
+    {{ macros.kv_row("Title", entry.title if entry else "—") }}
+    {{ macros.kv_row("Domain", entry.domain if entry else "—") }}
+    {{ macros.kv_row("Owner", entry.owner if entry else "—") }}
+    {{ macros.kv_row("Last reviewed", entry.last_reviewed_at if entry else "—") }}
+    {{ macros.kv_row("Version", entry.version if entry else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Description") }}
+<p>{{ entry.description if entry and entry.description else "—" }}</p>
+
+{{ macros.section("Decision Tree") }}
+{% if entry and entry.decision_tree %}
+<pre class="decision-tree">{{ entry.decision_tree }}</pre>
+{% else %}
+<p>—</p>
+{% endif %}
+
+{{ macros.section("Edge Cases") }}
+{% if entry and entry.edge_cases %}
+<ul>
+  {% for e in entry.edge_cases %}<li>{{ e }}</li>{% endfor %}
+</ul>
+{% else %}
+<p>—</p>
+{% endif %}

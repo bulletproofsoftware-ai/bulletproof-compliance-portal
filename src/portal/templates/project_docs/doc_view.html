@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ doc.name }} — {{ project_id }}{% endblock %}
+{% block content %}
+<h1>{{ doc.name }}</h1>
+<p class="muted">
+  <a href="/projects/{{ project_id }}">← {{ project_id }}</a> ·
+  Category <strong>{{ doc.category }}</strong> ·
+  Type <strong>{{ doc.doc_type }}</strong> ·
+  Last modified <span class="mono">{{ doc.last_modified }}</span>
+  {% if doc.last_author %} by <span class="mono">{{ doc.last_author }}</span>{% endif %}
+</p>
+
+<div class="panel">
+  <p>
+    <a href="/projects/{{ project_id }}/docs/{{ doc.path }}/history"
+       hx-get="/projects/{{ project_id }}/docs/{{ doc.path }}/history"
+       hx-target="#history-area"
+       hx-swap="innerHTML">View history</a> ·
+    <a href="/export/pdf/project_doc/{{ project_id }}|{{ doc.path }}">Export PDF</a>
+  </p>
+</div>
+
+<div id="history-area" class="panel" style="display: block"></div>
+
+<div class="panel">
+  {{ doc_html|safe }}
+</div>
+{% endblock %}

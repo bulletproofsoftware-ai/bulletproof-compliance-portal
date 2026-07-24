@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Knowledge candidate {{ candidate.candidate_id }}</title>
+</head>
+<body>
+  <h1>Knowledge candidate {{ candidate.candidate_id }}</h1>
+  <p>Type: <strong>{{ candidate.knowledge_type }}</strong> ·
+     Domain: <strong>{{ candidate.domain }}</strong> ·
+     Status: <strong>{{ candidate.status }}</strong></p>
+
+  <h2>Source</h2>
+  <p>{{ candidate.source.source_type }} / {{ candidate.source.source_id }}
+     (confidence {{ "%.2f" % candidate.source.confidence }})</p>
+
+  <h2>Diff</h2>
+  <p>+{{ diff_summary.additions }} additions, -{{ diff_summary.deletions }} deletions</p>
+  <table style="font-family: monospace; font-size: 11px">
+    {% for line in diff %}
+      {% if line.kind == "addition" %}
+        <tr style="background: #ecfdf5"><td>+ {{ line.text }}</td></tr>
+      {% elif line.kind == "deletion" %}
+        <tr style="background: #fef2f2"><td>- {{ line.text }}</td></tr>
+      {% else %}
+        <tr><td>&nbsp; {{ line.text }}</td></tr>
+      {% endif %}
+    {% endfor %}
+  </table>
+</body>
+</html>

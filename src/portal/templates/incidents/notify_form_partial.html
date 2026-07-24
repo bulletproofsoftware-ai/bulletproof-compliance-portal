@@ -1,0 +1,20 @@
+<table>
+  <thead>
+    <tr><th>Recipient</th><th>Channel</th><th>Sent</th><th>Confirmation</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+  {% if incident.notifications %}
+    {% for n in incident.notifications %}
+      <tr>
+        <td>{{ n.recipient }}</td>
+        <td>{{ n.channel }}</td>
+        <td class="mono">{{ n.sent_at.isoformat() if n.sent_at else "—" }}</td>
+        <td class="mono">{{ n.confirmation_id or "—" }}</td>
+        <td><span class="badge badge-{{ 'internal' if n.status in ('sent','acknowledged') else 'restricted' }}">{{ n.status }}</span></td>
+      </tr>
+    {% endfor %}
+  {% else %}
+    <tr><td colspan="5" class="muted">No notifications recorded.</td></tr>
+  {% endif %}
+  </tbody>
+</table>

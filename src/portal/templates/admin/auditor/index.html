@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Auditor Engagements{% endblock %}
+{% block content %}
+<h1>Auditor Engagements</h1>
+<p class="muted">REQ-CPL-033/034/035 — time-boxed accounts with hard expiry,
+no renewal. New engagement requires a new account.</p>
+
+<div class="panel">
+  <h3>Create new engagement</h3>
+  <form method="post" action="/admin/auditor-engagements">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-row">
+      <label>Auditor email</label>
+      <input type="email" name="auditor_email" required>
+    </div>
+    <div class="form-row">
+      <label>Engagement start</label>
+      <input type="datetime-local" name="engagement_start" required>
+    </div>
+    <div class="form-row">
+      <label>Engagement end (hard expiry, no renewal)</label>
+      <input type="datetime-local" name="engagement_end" required>
+    </div>
+    <div class="form-row">
+      <label>Date range start (data scope)</label>
+      <input type="datetime-local" name="date_range_start" required>
+    </div>
+    <div class="form-row">
+      <label>Date range end (data scope)</label>
+      <input type="datetime-local" name="date_range_end" required>
+    </div>
+    <div class="form-row">
+      <label>Allowed artifact types (comma-separated)</label>
+      <input type="text" name="allowed_artifact_types"
+             value="audit_event,evidence_package,gate_decision">
+    </div>
+    <div class="form-row">
+      <label>Allowed project ids (comma-separated, blank = all in scope)</label>
+      <input type="text" name="allowed_project_ids" value="">
+    </div>
+    <button type="submit">Create engagement</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h3>Active engagements</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Engagement</th>
+        <th>Auditor</th>
+        <th>Window</th>
+        <th>State</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% if engagements.items %}
+      {% for e in engagements.items %}
+      <tr>
+        <td>
+          <a href="/admin/auditor-engagements/{{ e.engagement_id }}">{{ e.engagement_id }}</a>
+        </td>
+        <td class="mono">{{ e.auditor_email }}</td>
+        <td class="mono">
+          {{ e.engagement_start.isoformat() }}<br>
+          → {{ e.engagement_end.isoformat() }}
+        </td>
+        <td>
+          {% if e.state == "active" %}
+            <span class="badge badge-public">active</span>
+          {% elif e.state == "revoked" %}
+            <span class="badge badge-restricted">revoked</span>
+          {% else %}
+            <span class="badge badge-internal">{{ e.state }}</span>
+          {% endif %}
+        </td>
+        <td><a href="/admin/auditor-engagements/{{ e.engagement_id }}">detail</a></td>
+      </tr>
+      {% endfor %}
+    {% else %}
+      <tr><td colspan="5" class="muted">No engagements.</td></tr>
+    {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

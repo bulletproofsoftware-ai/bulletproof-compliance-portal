@@ -1,0 +1,44 @@
+{# WI-04 — paginated event list HTMX partial #}
+{% if events.items %}
+<table>
+  <thead>
+    <tr>
+      <th>Timestamp (UTC)</th>
+      <th>Type</th>
+      <th>User</th>
+      <th>Classification</th>
+      <th>Chain</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ev in events.items %}
+    <tr>
+      <td class="mono">{{ ev.ts.isoformat() if ev.ts else "—" }}</td>
+      <td>{{ ev.audit_type }}</td>
+      <td class="mono">{{ ev.user_id or "—" }}</td>
+      <td><span class="{{ ev.classification|classification_badge }}">{{ ev.classification or "?" }}</span></td>
+      <td class="mono">#{{ ev.chain_index if ev.chain_index is not none else "?" }}</td>
+      <td>
+        <a href="#"
+           hx-get="/audit/events/{{ ev.event_id }}"
+           hx-target="#cp-modal-body"
+           hx-swap="innerHTML">
+          view
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if events.next_cursor %}
+  <p class="muted">
+    <a href="#"
+       hx-get="/audit/events?cursor={{ events.next_cursor|urlencode }}"
+       hx-target="#audit-results">Load more</a>
+  </p>
+{% endif %}
+<p class="muted">{{ events.items|length }} event(s) loaded.</p>
+{% else %}
+<p class="muted">No events match the current filters.</p>
+{% endif %}

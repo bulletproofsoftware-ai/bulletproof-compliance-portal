@@ -1,0 +1,19 @@
+{% if report.deliveries %}
+<table>
+  <thead>
+    <tr><th>Recipient</th><th>Channel</th><th>Delivered</th><th>Receipt</th></tr>
+  </thead>
+  <tbody>
+    {% for d in report.deliveries %}
+      <tr>
+        <td>{{ d.recipient }}</td>
+        <td>{{ d.channel }}</td>
+        <td class="mono">{{ d.delivered_at.isoformat() }}</td>
+        <td class="mono">{{ d.confirmation_receipt or "—" }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p class="muted">No deliveries recorded.</p>
+{% endif %}

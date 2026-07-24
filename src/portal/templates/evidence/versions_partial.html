@@ -1,0 +1,47 @@
+{# WI-05 — version history partial #}
+<h3>Version history</h3>
+{% if versions.items %}
+<table>
+  <thead>
+    <tr>
+      <th>Version</th>
+      <th>Created</th>
+      <th>By</th>
+      <th>Hash</th>
+      <th>Note</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for v in versions.items %}
+      <tr>
+        <td class="mono">{{ v.version }}</td>
+        <td class="mono">{{ v.created_at.isoformat() if v.created_at else "—" }}</td>
+        <td class="mono">{{ v.created_by or "—" }}</td>
+        <td class="mono">{{ v.artifact_hash or "—" }}</td>
+        <td>{{ v.note or "" }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if versions.items|length >= 2 %}
+<form hx-get="/evidence/{{ package_id }}/diff" hx-target="#evidence-detail" hx-swap="innerHTML">
+  <div class="form-row">
+    <label>Diff between versions</label>
+    <select name="from">
+      {% for v in versions.items %}
+        <option value="{{ v.version }}">{{ v.version }}</option>
+      {% endfor %}
+    </select>
+    →
+    <select name="to">
+      {% for v in versions.items %}
+        <option value="{{ v.version }}">{{ v.version }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Compare</button>
+  </div>
+</form>
+{% endif %}
+{% else %}
+<p class="muted">No version history (single version package).</p>
+{% endif %}

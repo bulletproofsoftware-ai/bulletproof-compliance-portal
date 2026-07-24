@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}New SOX Report{% endblock %}
+{% block content %}
+<h1>SOX Management Attestation</h1>
+<p class="muted">REQ-CPL-022 — generate report from accumulated evidence for the period.</p>
+
+<form method="post" action="/reports/generate" class="panel">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="report_type" value="sox_attestation">
+  <div class="form-row">
+    <label for="period_start">Period start (ISO-8601)</label>
+    <input type="text" id="period_start" name="period_start" placeholder="2026-01-01T00:00:00Z" required>
+  </div>
+  <div class="form-row">
+    <label for="period_end">Period end</label>
+    <input type="text" id="period_end" name="period_end" placeholder="2026-12-31T23:59:59Z" required>
+  </div>
+  <div class="form-row">
+    <label for="scope_notes">Scope notes</label>
+    <textarea id="scope_notes" name="scope_notes" rows="3"></textarea>
+  </div>
+  <button type="submit">Generate draft</button>
+</form>
+{% endblock %}

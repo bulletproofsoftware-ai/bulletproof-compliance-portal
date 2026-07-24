@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_components.html" import breadcrumbs %}
+{% block title %}Evidence — {{ package.title }}{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "Evidence", "href": "/evidence"}, {"label": package.package_id}]) }}{% endblock %}
+{% block content %}
+<h1>{{ package.title }}</h1>
+<p>
+  <span class="mono">{{ package.package_id }}</span> &middot;
+  version <span class="mono">{{ package.version }}</span> &middot;
+  <span class="{{ package.classification|classification_badge }}">{{ package.classification or "?" }}</span>
+</p>
+
+<div class="panel">
+  <h3>Signature</h3>
+  <p>
+    <strong>Status:</strong>
+    {% if signature.valid %}
+      <span class="badge badge-public">VALID</span>
+    {% else %}
+      <span class="badge badge-restricted">INVALID</span>
+    {% endif %}
+  </p>
+  <p>
+    <strong>Algorithm:</strong> {{ signature.algorithm }}<br>
+    <strong>Key id:</strong> <span class="mono">{{ signature.signing_key_id or "—" }}</span><br>
+    <strong>Signed at:</strong>
+    <span class="mono">{{ signature.signed_at.isoformat() if signature.signed_at else "—" }}</span>
+  </p>
+  {% if signature.note %}<p class="muted">{{ signature.note }}</p>{% endif %}
+  <p>
+    <a href="/evidence/{{ package.package_id }}/verify"
+       hx-get="/evidence/{{ package.package_id }}/verify"
+       hx-target="#evidence-detail"
+       hx-swap="innerHTML">Re-verify signature</a>
+  </p>
+</div>
+
+<div id="evidence-detail" class="panel">
+  <h3>Versions</h3>
+  <p>
+    <a href="#"
+       hx-get="/evidence/{{ package.package_id }}/versions"
+       hx-target="#evidence-detail"
+       hx-swap="innerHTML">Show version history</a>
+  </p>
+</div>
+
+<div class="panel">
+  <h3>Download / Export</h3>
+  <p>
+    <a href="/evidence/{{ package.package_id }}/download">
+      Download artifact{% if "auditor" in user.roles|map(attribute="value")|list %} (watermarked PDF){% endif %}
+    </a>
+  </p>
+  <p>
+    <a href="/export/pdf/evidence_package/{{ package.package_id }}">
+      Export package summary as PDF
+    </a>
+  </p>
+</div>
+{% endblock %}

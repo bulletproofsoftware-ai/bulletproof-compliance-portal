@@ -1,0 +1,38 @@
+{% import "_macros.html" as macros %}
+{{ macros.section("Data Subject Request Record") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Request ID", request.id if request else document_id) }}
+    {{ macros.kv_row("Type", request.request_type if request else "—") }}
+    {{ macros.kv_row("Status", request.status if request else "—") }}
+    {{ macros.kv_row("Submitted (UTC)", request.submitted_at if request else "—") }}
+    {{ macros.kv_row("Closed (UTC)", request.closed_at if request else "—") }}
+    {{ macros.kv_row("SLA deadline", request.sla_deadline if request else "—") }}
+    {{ macros.kv_row("Verification status", request.verification_status if request else "—") }}
+  </tbody>
+</table>
+
+{# PII fields are intentionally NOT rendered here unless caller passes a fully-redacted view #}
+{{ macros.section("Subject Identity (Redacted)") }}
+<p>{{ request.subject_redacted if request and request.subject_redacted else "[REDACTED]" }}</p>
+
+{{ macros.section("Activity Log") }}
+{% if request and request.activity_log %}
+<table class="data-table">
+  <thead>
+    <tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    {% for a in request.activity_log %}
+    <tr>
+      <td>{{ a.timestamp }}</td>
+      <td>{{ a.actor }}</td>
+      <td>{{ a.action }}</td>
+      <td>{{ a.notes }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>—</p>
+{% endif %}

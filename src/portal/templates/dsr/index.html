@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, kpi_cards, breadcrumbs %}
+{% block title %}DSR Queue{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "DSR Queue",
+  "GDPR Data Subject Requests with a 30-day SLA countdown. Identity verification enforces separation of duties.",
+  "REQ-CPL-012 · REQ-CPL-013") }}
+{{ kpi_cards(kpis) }}
+
+<details class="filters">
+  <summary>Filters</summary>
+  <form method="get" action="/dsr" hx-get="/dsr/queue" hx-target="#queue-body" hx-trigger="change">
+    <label for="request_type">Type</label>
+    <select name="request_type" id="request_type">
+      <option value="">All</option>
+      <option value="access" {% if request_type_filter == "access" %}selected{% endif %}>access</option>
+      <option value="rectification" {% if request_type_filter == "rectification" %}selected{% endif %}>rectification</option>
+      <option value="erasure" {% if request_type_filter == "erasure" %}selected{% endif %}>erasure</option>
+      <option value="restriction" {% if request_type_filter == "restriction" %}selected{% endif %}>restriction</option>
+      <option value="portability" {% if request_type_filter == "portability" %}selected{% endif %}>portability</option>
+      <option value="objection" {% if request_type_filter == "objection" %}selected{% endif %}>objection</option>
+      <option value="automated_decision_review" {% if request_type_filter == "automated_decision_review" %}selected{% endif %}>automated_decision_review</option>
+    </select>
+    <label for="status_filter">Status</label>
+    <select name="status_filter" id="status_filter">
+      <option value="">All</option>
+      <option value="received">received</option>
+      <option value="identity_pending">identity_pending</option>
+      <option value="identity_insufficient">identity_insufficient</option>
+      <option value="verified">verified</option>
+      <option value="processing">processing</option>
+      <option value="evidence_generated">evidence_generated</option>
+      <option value="delivered">delivered</option>
+      <option value="closed">closed</option>
+      <option value="rejected">rejected</option>
+    </select>
+  </form>
+</details>
+
+<div class="panel" hx-get="/dsr/queue" hx-trigger="every 60s" hx-target="#queue-body">
+  <h3>Queue (sorted by SLA urgency)</h3>
+  <div id="queue-body">
+    {% include "dsr/queue_partial.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{# Batch operation form (REQ-CPL-030). Loaded as a fragment when needed. #}
+<form hx-post="/knowledge/batch"
+      hx-target="#batch-result"
+      hx-swap="innerHTML">
+  <div class="form-row">
+    <label>Selected candidate IDs (comma-separated)</label>
+    <input type="text" name="candidate_ids" required placeholder="cand-001, cand-002">
+  </div>
+  <div class="form-row">
+    <label>Action</label>
+    <select name="action" required>
+      <option value="approve">approve</option>
+      <option value="reject">reject</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label>Rationale (>= 30 chars)</label>
+    <textarea name="rationale" rows="3" minlength="30" required></textarea>
+  </div>
+  <button type="submit">Apply batch</button>
+</form>
+<div id="batch-result" class="panel" style="display: block; margin-top: 1rem"></div>

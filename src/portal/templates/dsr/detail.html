@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% from "_components.html" import breadcrumbs %}
+{% block title %}DSR {{ dsr.request_id }}{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "DSR", "href": "/dsr"}, {"label": dsr.request_id}]) }}{% endblock %}
+{% block content %}
+<h1>DSR {{ dsr.request_id }}</h1>
+<p class="muted">{{ dsr.request_type }} · submitted {{ dsr.submitted_at.strftime("%Y-%m-%d") }} · source {{ dsr.source }}</p>
+
+{% if not is_terminal %}
+<div class="panel">
+  <strong>SLA:</strong>
+  <span class="sla-{{ 'red' if band in ('red','overdue') else ('amber' if band == 'amber' else 'green') }}">
+    {{ band|upper }} ({{ remaining_int }} days remaining)
+  </span>
+</div>
+{% else %}
+<div class="alert-success">Status terminal: <strong>{{ dsr.status }}</strong></div>
+{% endif %}
+
+<div class="panel">
+  <h3>Status</h3>
+  <p><span class="badge badge-internal">{{ dsr.status }}</span></p>
+
+  {% if sod_violation %}
+    <div class="alert-warn">
+      <strong>SoD lock:</strong> you submitted this DSR; you cannot identity-verify it.
+      A different reviewer must act (AMD-01).
+    </div>
+  {% endif %}
+
+  {% if not is_terminal and valid_next_states %}
+    <h4>Transition</h4>
+    <form hx-post="/dsr/{{ dsr.request_id }}/transition"
+          hx-target="#transition-result"
+          hx-swap="innerHTML">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="form-row">
+        <label for="to_status">Next state</label>
+        <select name="to_status" id="to_status">
+          {% for s in valid_next_states %}
+            {% if not (sod_violation and s in ['verified','identity_insufficient','identity_rejected']) %}
+              <option value="{{ s }}">{{ s }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="verification_method">verification_method (required for → verified)</label>
+        <input type="text" id="verification_method" name="verification_method"
+               placeholder="passport / driver-licence / ...">
+      </div>
+      <div class="form-row">
+        <label for="rejection_reason">rejection_reason (required for → rejected)</label>
+        <input type="text" id="rejection_reason" name="rejection_reason">
+      </div>
+      <div class="form-row">
+        <label for="notes">Transition notes</label>
+        <textarea id="notes" name="notes" rows="2"></textarea>
+      </div>
+      <button type="submit">Transition</button>
+    </form>
+    <div id="transition-result"></div>
+  {% endif %}
+</div>
+
+{% if dsr.status in ['verified', 'processing'] %}
+<div class="panel" id="evidence-panel">
+  <h3>Filtered evidence package</h3>
+  <form hx-post="/dsr/{{ dsr.request_id }}/generate-evidence"
+        hx-target="#evidence-panel"
+        hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit">Generate evidence (REQ-CPL-015)</button>
+  </form>
+</div>
+{% endif %}
+
+{% if dsr.status == 'evidence_generated' %}
+<div class="panel" id="delivery-panel">
+  <h3>Secure delivery</h3>
+  <form hx-post="/dsr/{{ dsr.request_id }}/deliver"
+        hx-target="#delivery-panel"
+        hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-row">
+      <label for="package_id">Evidence package id</label>
+      <input type="text" id="package_id" name="package_id" required>
+    </div>
+    <div class="form-row">
+      <label for="version">Version</label>
+      <input type="text" id="version" name="version" value="v1">
+    </div>
+    <button type="submit">Issue delivery token (one-time, AMD-16)</button>
+  </form>
+</div>
+{% endif %}
+
+{% if dsr.status == 'delivered' %}
+<div class="panel" id="close-panel">
+  <h3>Close DSR</h3>
+  <p class="muted">AMD-12: closing invalidates ALL outstanding delivery tokens for this request.</p>
+  <form hx-post="/dsr/{{ dsr.request_id }}/close"
+        hx-target="#close-panel"
+        hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-row">
+      <label for="acknowledgment_method">Acknowledgment method</label>
+      <select id="acknowledgment_method" name="acknowledgment_method">
+        <option value="email">email</option>
+        <option value="signed_receipt">signed_receipt</option>
+        <option value="none">none (14d cooldown after delivery required)</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="acknowledged_at">Acknowledged at (optional)</label>
+      <input type="datetime-local" id="acknowledged_at" name="acknowledged_at">
+    </div>
+    <div class="form-row">
+      <label for="close_notes">Notes</label>
+      <textarea id="close_notes" name="notes" rows="2"></textarea>
+    </div>
+    <button type="submit">Close DSR</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h3>Subject info</h3>
+  <table>
+    <tr><th>Name</th><td>{{ dsr.subject_name or "—" }}</td></tr>
+    <tr><th>Email</th><td>{{ dsr.subject_email or "—" }}</td></tr>
+    <tr><th>Submitted by</th><td class="mono">{{ dsr.submitted_by or "—" }}</td></tr>
+    <tr><th>Identity proof</th><td class="mono">{{ dsr.identity_proof_id or "—" }}</td></tr>
+    <tr><th>Evidence package</th><td class="mono">{{ dsr.evidence_package_id or "—" }}</td></tr>
+  </table>
+</div>
+
+<div class="panel">
+  <h3>Transitions</h3>
+  {% if dsr.transitions %}
+    <ol>
+      {% for t in dsr.transitions %}
+        <li>
+          <span class="mono">{{ t.get("at") }}</span> —
+          {{ t.get("from","?") }} → <strong>{{ t.get("to","?") }}</strong>
+          by <span class="mono">{{ t.get("by","—") }}</span>
+          {% if t.get("notes") %}<br><span class="muted">{{ t.get("notes") }}</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="muted">No transitions yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,176 @@
+/* Compliance Portal design system (HTML views).
+   Extracted from base.html (Plan 4). The PDF renderer ships its own print.css
+   under portal/pdf/static/print.css; this stylesheet is for HTML views only. */
+:root {
+  --bg: #f6f7f9;
+  --fg: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --accent: #1f2937;
+  --red: #b91c1c;
+  --amber: #b45309;
+  --green: #047857;
+  --blue: #1d4ed8;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+        sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+}
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+/* Top bar — class-based so it applies to <header class="topbar">. */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--accent);
+  color: #fff;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar a { color: #fff; }
+.topbar .brand { font-weight: 700; letter-spacing: 0.01em; }
+.topbar .spacer { flex: 1; }
+.topbar-search { margin: 0; }
+.topbar-search input {
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+  color: #fff; border-radius: 999px; padding: 0.3rem 0.8rem; width: 240px; font-size: 13px;
+}
+.topbar-search input::placeholder { color: rgba(255,255,255,0.7); }
+.topbar-search input:focus { outline: none; background: rgba(255,255,255,0.2); }
+@media (max-width: 720px) { .topbar-search input { width: 130px; } }
+main.content { padding: 1.5rem 1.25rem; }
+h1 { font-size: 1.5rem; margin: 0 0 0.25rem; }
+h1, h2, h3 { color: var(--accent); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line); text-align: left; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+tbody tr:hover { background: #fafafa; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+}
+.badge-public      { background: #ecfdf5; color: #047857; }
+.badge-internal    { background: #eff6ff; color: #1d4ed8; }
+.badge-confidential{ background: #fef3c7; color: #92400e; }
+.badge-restricted  { background: #fee2e2; color: #b91c1c; }
+.badge-unknown     { background: #f3f4f6; color: #4b5563; }
+.sla-red    { color: var(--red); font-weight: 700; }
+.sla-amber  { color: var(--amber); font-weight: 700; }
+.sla-green  { color: var(--green); font-weight: 600; }
+.alert-error {
+  border-left: 4px solid var(--red);
+  background: #fef2f2; color: var(--red);
+  padding: 0.75rem 1rem; margin: 1rem 0;
+}
+.alert-success {
+  border-left: 4px solid var(--green);
+  background: #ecfdf5; color: var(--green);
+  padding: 0.75rem 1rem; margin: 1rem 0;
+}
+.alert-warn {
+  border-left: 4px solid var(--amber);
+  background: #fffbeb; color: var(--amber);
+  padding: 0.75rem 1rem; margin: 1rem 0;
+}
+.integrity-alert {
+  border: 2px solid var(--red);
+  background: #fee2e2;
+  color: var(--red);
+  font-weight: 700;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+.form-row { margin-bottom: 0.75rem; }
+.form-row label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%; padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line); border-radius: 4px;
+}
+button {
+  background: var(--accent); color: #fff; border: 0;
+  padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;
+  font-weight: 600;
+}
+button:disabled { background: #9ca3af; cursor: not-allowed; }
+.muted { color: var(--muted); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.panel {
+  background: #fff; border: 1px solid var(--line); border-radius: 6px;
+  padding: 1rem; margin-bottom: 1rem;
+}
+/* Loading state for HTMX partials */
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator { display: inline; }
+/* ── Shell layout (sidebar + breadcrumbs + KPI cards) ──────────────── */
+.layout { display: flex; align-items: stretch; min-height: calc(100vh - 49px); }
+.sidebar {
+  width: 210px; flex: 0 0 210px; background: #fff;
+  border-right: 1px solid var(--line); padding: 0.75rem 0;
+}
+.nav-group { margin-bottom: 0.75rem; }
+.nav-group-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  color: var(--muted); padding: 0.25rem 1rem; letter-spacing: 0.04em;
+}
+.nav-list { list-style: none; margin: 0; padding: 0; }
+.nav-link {
+  display: block; padding: 0.4rem 1rem; color: var(--fg);
+  border-left: 3px solid transparent;
+}
+.nav-link:hover { background: var(--bg); text-decoration: none; }
+.nav-link.active {
+  border-left-color: var(--blue); color: var(--blue);
+  background: #eff6ff; font-weight: 600;
+}
+main.content { flex: 1; }            /* override fixed max-width centering */
+.breadcrumbs { font-size: 12px; color: var(--muted); margin-bottom: 0.75rem; }
+.breadcrumbs a { color: var(--muted); }
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem; margin-bottom: 1rem;
+}
+.kpi-card {
+  background: #fff; border: 1px solid var(--line); border-radius: 6px;
+  padding: 0.75rem 1rem; display: block; color: inherit;
+}
+.kpi-card:hover { text-decoration: none; border-color: var(--blue); }
+.kpi-card .kpi-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+.kpi-card .kpi-label { font-size: 12px; color: var(--muted); }
+@media (max-width: 720px) { .layout { flex-direction: column; }
+  .sidebar { width: 100%; flex-basis: auto; border-right: 0; border-bottom: 1px solid var(--line); } }
+/* ── Reusable detail modal ─────────────────────────────────────────── */
+.cp-modal {
+  width: min(760px, 92vw); max-height: 86vh; overflow: auto;
+  border: 1px solid var(--line); border-radius: 8px; padding: 0 1.25rem 1.25rem;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+.cp-modal::backdrop { background: rgba(17,24,39,0.45); }
+.cp-modal-bar { position: sticky; top: 0; display: flex; justify-content: flex-end;
+  background: #fff; padding: 0.5rem 0; margin: 0; }
+.cp-modal-close { background: transparent; color: var(--muted); font-size: 1.1rem;
+  padding: 0.1rem 0.5rem; }
+.cp-modal-close:hover { color: var(--fg); }
+.cp-modal .panel { border: 0; padding: 0; margin: 0; }
+/* ── Collapsible filters (native <details>, collapsed by default) ───── */
+details.filters { background: #fff; border: 1px solid var(--line); border-radius: 6px;
+  padding: 0.5rem 1rem; margin-bottom: 1rem; }
+details.filters > summary { cursor: pointer; font-weight: 600; color: var(--accent);
+  list-style: none; display: flex; align-items: center; gap: 0.4rem; }
+details.filters > summary::before { content: "▸"; color: var(--muted); font-size: 0.8rem; }
+details.filters[open] > summary::before { content: "▾"; }
+details.filters > summary::-webkit-details-marker { display: none; }
+details.filters[open] { padding-bottom: 1rem; }
+/* Client-side find-in-table box injected above large data tables */
+.table-filter {
+  display: block; margin: 0 0 0.5rem; padding: 0.35rem 0.6rem; width: min(320px, 100%);
+  border: 1px solid var(--line); border-radius: 6px; font-size: 13px;
+}

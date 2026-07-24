@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+{% import "_macros.html" as macros %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title }}</title>
+  {# print.css is loaded by WeasyPrint as a stylesheet — not via @import here #}
+</head>
+<body>
+  {{ macros.watermark_overlay(watermark) }}
+  {{ macros.page_header(project, title, user_identity, user_role, generated_at) }}
+  <main class="pdf-body">
+    {{ body_html | safe }}
+  </main>
+  {{ macros.page_footer(integrity_hash_short) }}
+  <div class="pdf-integrity-block">
+    <p>Document integrity SHA-256 (full): <code>{{ integrity_hash }}</code></p>
+    <p>Generated: {{ generated_at }} &middot; Identity: {{ user_identity }} ({{ user_role }})</p>
+  </div>
+</body>
+</html>

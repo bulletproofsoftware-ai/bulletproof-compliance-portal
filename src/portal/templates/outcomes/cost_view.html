@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Cost per Outcome{% endblock %}
+{% block content %}
+<h1>Cost per outcome</h1>
+<p class="muted">REQ-CPL-031 — period <span class="mono">{{ period_start }}</span>
+  → <span class="mono">{{ period_end }}</span></p>
+
+<div class="panel">
+  <table>
+    <tbody>
+      <tr><th>Total cost (USD)</th><td>${{ "%.2f" % kpis.total_cost_usd }}</td></tr>
+      <tr><th>Total outcomes</th><td>{{ kpis.total_outcomes }}</td></tr>
+      <tr><th>Cost per outcome</th><td><strong>${{ "%.2f" % kpis.cost_per_outcome_usd }}</strong></td></tr>
+      <tr><th>Quality score</th><td>{{ "%.1f" % kpis.quality_score }}</td></tr>
+      <tr><th>ROI ratio</th><td>{{ "%.2f" % kpis.roi_ratio }}</td></tr>
+      <tr><th>Quality trend (pp)</th><td>{{ "%.2f" % kpis.quality_trend_pp }}</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p><a href="/outcomes">Back to overview</a></p>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, kpi_cards, breadcrumbs %}
+{% block title %}Compliance Dashboards{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "Compliance Dashboards",
+  "Multi-framework compliance scoring with 90-day trends. Read-only views.",
+  "REQ-CPL-027 · REQ-CPL-028") }}
+{{ kpi_cards(kpis) }}
+
+<p><a href="/dashboards/compare">Compare frameworks side by side →</a></p>
+
+<div class="panel">
+  <h2>Frameworks</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Framework</th>
+        <th>Overall score</th>
+        <th>90-day trend</th>
+        <th>Last evaluated</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in frameworks %}
+        <tr>
+          <td><a href="/dashboards/{{ f.framework }}">{{ f.label }}</a></td>
+          <td>
+            {% if f.scores %}
+              <strong>{{ "%.1f" % f.scores.overall_score }}</strong>
+              {% if f.scores.regression_flag %}
+                <span class="badge badge-restricted">regression</span>
+              {% endif %}
+            {% else %}
+              <span class="muted">unavailable</span>
+            {% endif %}
+          </td>
+          <td>
+            <svg viewBox="0 0 60 20" width="60" height="20"
+                 class="sparkline" data-values='{{ f.trend_values|tojson }}'></svg>
+          </td>
+          <td>
+            {% if f.scores %}
+              <span class="mono">{{ f.scores.asof }}</span>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/dashboards/{{ f.framework }}/gap-analysis"
+               hx-get="/dashboards/{{ f.framework }}/gap-analysis"
+               hx-target="#gap-detail"
+               hx-swap="innerHTML">Gap analysis</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div id="gap-detail" class="panel" style="display: block">
+  <p class="muted">Click "Gap analysis" on any framework to view drill-down.</p>
+</div>
+
+<script src="/static/js/dashboards.js" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".sparkline").forEach(function (el) {
+      try {
+        var values = JSON.parse(el.dataset.values || "[]");
+        if (window.ComplianceDashboards) {
+          window.ComplianceDashboards.renderSparkline(el, values);
+        }
+      } catch (e) { /* ignore */ }
+    });
+  });
+</script>
+{% endblock %}

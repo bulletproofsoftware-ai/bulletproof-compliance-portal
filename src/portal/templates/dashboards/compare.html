@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, breadcrumbs, empty_state %}
+{% block title %}Framework Comparison{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "Framework Comparison",
+  "Overall compliance scores across all frameworks, ranked. Click a column header to re-sort.",
+  "REQ-CPL-027 · REQ-CPL-028") }}
+
+<div class="panel">
+  {% if rows %}
+  <table>
+    <thead>
+      <tr><th>Framework</th><th>Overall score</th><th>Standing</th><th>Domains</th><th>Last evaluated</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td><a href="/dashboards/{{ r.framework }}">{{ r.label }}</a></td>
+          <td data-sort="{{ r.overall if r.overall is not none else -1 }}">
+            {% if r.overall is not none %}
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="display:inline-block;height:8px;border-radius:4px;background:var(--blue);width:{{ r.overall }}%;max-width:100%;"></span>
+                <strong>{{ "%.1f" % r.overall }}</strong>
+              </div>
+            {% else %}<span class="muted">unavailable</span>{% endif %}
+          </td>
+          <td>
+            {% if r.regression %}<span class="badge badge-restricted">regression</span>
+            {% elif r.overall is not none %}<span class="badge badge-public">stable</span>
+            {% else %}<span class="muted">—</span>{% endif %}
+          </td>
+          <td>{{ r.domains }}</td>
+          <td class="mono">{{ r.asof if r.asof else "—" }}</td>
+          <td><a href="/dashboards/{{ r.framework }}">view →</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  {{ empty_state("No framework scores available.") }}
+  {% endif %}
+</div>
+{% endblock %}

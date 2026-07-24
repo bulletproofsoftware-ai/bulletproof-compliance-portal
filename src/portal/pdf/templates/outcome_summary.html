@@ -1,0 +1,26 @@
+{% import "_macros.html" as macros %}
+{{ macros.section("Outcome Summary") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Outcome ID", outcome.id if outcome else document_id) }}
+    {{ macros.kv_row("Period", outcome.period if outcome else "—") }}
+    {{ macros.kv_row("Captured (UTC)", outcome.captured_at if outcome else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Value Metrics") }}
+{% if outcome and outcome.metrics %}
+<table class="data-table">
+  <thead><tr><th>Metric</th><th>Baseline</th><th>Current</th><th>Delta</th></tr></thead>
+  <tbody>
+    {% for m in outcome.metrics %}
+    <tr><td>{{ m.name }}</td><td>{{ m.baseline }}</td><td>{{ m.current }}</td><td>{{ m.delta }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>—</p>
+{% endif %}
+
+{{ macros.section("Narrative") }}
+<p>{{ outcome.narrative if outcome and outcome.narrative else "—" }}</p>

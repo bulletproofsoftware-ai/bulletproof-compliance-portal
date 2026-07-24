@@ -1,0 +1,19 @@
+{# Compact per-framework score partial (HTMX-injected). #}
+<div class="panel">
+  <h3>{{ framework_label }}</h3>
+  {% if scores %}
+    <p>
+      <strong>{{ "%.1f" % scores.overall_score }}</strong>
+      {% if scores.regression_flag %}
+        <span class="badge badge-restricted">regression</span>
+      {% endif %}
+    </p>
+    <ul>
+      {% for d in scores.domain_scores %}
+        <li>{{ d.domain }}: <strong>{{ "%.1f" % d.score }}</strong></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No score data available.</p>
+  {% endif %}
+</div>

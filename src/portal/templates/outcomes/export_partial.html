@@ -1,0 +1,53 @@
+{# Stakeholder summary export view (REQ-CPL-031). #}
+{% extends "base.html" %}
+{% block title %}Outcome Summary{% endblock %}
+{% block content %}
+<h1>Stakeholder summary</h1>
+<p class="muted">Period <span class="mono">{{ period_start }}</span>
+  → <span class="mono">{{ period_end }}</span></p>
+
+<div class="panel">
+  <h2>Headline KPIs</h2>
+  <table>
+    <tbody>
+      <tr><th>Total cost</th><td>${{ "%.2f" % summary.kpis.total_cost_usd }}</td></tr>
+      <tr><th>Total outcomes</th><td>{{ summary.kpis.total_outcomes }}</td></tr>
+      <tr><th>Cost per outcome</th><td>${{ "%.2f" % summary.kpis.cost_per_outcome_usd }}</td></tr>
+      <tr><th>Quality score</th><td>{{ "%.1f" % summary.kpis.quality_score }}</td></tr>
+      <tr><th>ROI ratio</th><td>{{ "%.2f" % summary.kpis.roi_ratio }}</td></tr>
+    </tbody>
+  </table>
+</div>
+
+{% if summary.top_agents %}
+<div class="panel">
+  <h2>Top agents</h2>
+  <table>
+    <thead>
+      <tr><th>Agent</th><th>Invocations</th><th>Total cost</th><th>Quality</th></tr>
+    </thead>
+    <tbody>
+      {% for a in summary.top_agents %}
+        <tr>
+          <td><span class="mono">{{ a.agent_name }}</span></td>
+          <td>{{ a.invocations }}</td>
+          <td>${{ "%.2f" % a.total_cost_usd }}</td>
+          <td>{{ "%.1f" % a.quality_avg }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if summary.forecast %}
+<div class="panel">
+  <h2>Forecast horizon</h2>
+  <p>{{ summary.forecast.horizon_days }} days; {{ summary.forecast.points|length }} points.</p>
+</div>
+{% endif %}
+
+<p>
+  <a href="/export/pdf/outcome_summary/30d">Download PDF (30-day)</a>
+</p>
+{% endblock %}

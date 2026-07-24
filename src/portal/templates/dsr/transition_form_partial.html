@@ -1,0 +1,10 @@
+<div class="alert-success">
+  Transitioned to <strong>{{ transition_result.to_status }}</strong> at
+  <span class="mono">{{ transition_result.transitioned_at.isoformat() }}</span>.
+  {% if transition_result.invalidated_token_count %}
+    <br>{{ transition_result.invalidated_token_count }} delivery token(s) invalidated (AMD-12).
+  {% endif %}
+</div>
+<p>
+  <a href="/dsr/{{ dsr.request_id }}">Reload detail →</a>
+</p>

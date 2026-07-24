@@ -1,0 +1,167 @@
+/* Compliance Portal — print stylesheet (WI-19).
+ * Loaded by WeasyPrint via weasy_config.make_print_css(). All assets
+ * referenced via @font-face / url(...) MUST live under STATIC_ROOT or be
+ * inline data: URIs — the safe URL fetcher (AMD-02) blocks anything else.
+ */
+
+@page {
+  size: letter;
+  margin: 0.75in 0.75in 1in 0.75in;
+  @top-center {
+    content: element(pdf-header);
+  }
+  @bottom-left {
+    content: "Page " counter(page) " of " counter(pages);
+    font-size: 9pt;
+    color: #555;
+  }
+  @bottom-right {
+    content: element(pdf-footer);
+  }
+}
+
+html, body {
+  font-family: "DejaVu Sans", "Helvetica", "Arial", sans-serif;
+  font-size: 10pt;
+  color: #1f1f1f;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+header.pdf-header {
+  position: running(pdf-header);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1pt solid #999;
+  padding-bottom: 6pt;
+  font-size: 9pt;
+  color: #333;
+}
+.pdf-header__left { font-weight: bold; }
+.pdf-header__center { font-weight: bold; text-align: center; flex: 1; padding: 0 1em; }
+.pdf-header__right { text-align: right; line-height: 1.2; }
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+footer.pdf-footer {
+  position: running(pdf-footer);
+  font-size: 8pt;
+  color: #555;
+  border-top: 1pt solid #ccc;
+  padding-top: 4pt;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* ── Watermark ───────────────────────────────────────────────────────────── */
+/* Renders on every page via running element + @page positioning. */
+.watermark {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.watermark__text {
+  transform: rotate(-30deg);
+  opacity: 0.18;
+  font-size: 32pt;
+  color: #d62828;
+  text-align: center;
+  line-height: 1.4;
+  font-weight: bold;
+  letter-spacing: 1pt;
+}
+.watermark__id {
+  font-size: 8pt;
+  font-weight: normal;
+  font-family: monospace;
+  color: #d62828;
+}
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+main.pdf-body { padding-top: 12pt; }
+
+h1, h2.section-heading {
+  color: #1a3d6b;
+  border-bottom: 1pt solid #888;
+  padding-bottom: 2pt;
+  margin-top: 1.4em;
+  margin-bottom: 0.6em;
+  font-size: 12pt;
+}
+
+h2.section-heading { page-break-after: avoid; }
+
+p { margin: 0.5em 0; }
+
+aside.signature-note {
+  border: 1pt solid #888;
+  background: #f5f5f5;
+  padding: 8pt;
+  margin: 12pt 0;
+  font-size: 9pt;
+  color: #333;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.6em 0;
+  font-size: 9.5pt;
+  page-break-inside: auto;
+}
+table tr { page-break-inside: avoid; }
+table th, table td {
+  border: 0.5pt solid #ccc;
+  padding: 4pt 6pt;
+  text-align: left;
+  vertical-align: top;
+}
+table th {
+  background: #eee;
+  font-weight: 600;
+}
+
+/* Key-value tables (compact two-column) */
+table.kv th.kv__label { width: 30%; background: #f0f0f0; }
+table.kv td.kv__value { word-wrap: break-word; overflow-wrap: break-word; }
+
+/* Wider data tables */
+table.data-table th { background: #1a3d6b; color: #fff; font-weight: 600; }
+table.data-table tr:nth-child(even) td { background: #fafafa; }
+
+/* ── Code & pre ──────────────────────────────────────────────────────────── */
+code, pre {
+  font-family: "DejaVu Sans Mono", "Menlo", "Consolas", monospace;
+  font-size: 9pt;
+  background: #f5f5f5;
+  border: 0.5pt solid #ddd;
+  border-radius: 2pt;
+  padding: 1pt 3pt;
+}
+pre { padding: 6pt 8pt; white-space: pre-wrap; word-wrap: break-word; }
+pre.decision-tree { background: #fffbe6; border-color: #ddc; }
+
+/* ── Integrity block — last paragraph on the document ────────────────────── */
+.pdf-integrity-block {
+  margin-top: 18pt;
+  padding-top: 8pt;
+  border-top: 1pt dashed #999;
+  font-size: 8pt;
+  color: #555;
+  font-family: "DejaVu Sans Mono", "Menlo", "Consolas", monospace;
+  word-break: break-all;
+}
+.pdf-integrity-block code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}

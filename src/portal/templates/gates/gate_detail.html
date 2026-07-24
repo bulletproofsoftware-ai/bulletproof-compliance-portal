@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% from "_components.html" import breadcrumbs %}
+{% block title %}Gate {{ gate.gate_id }}{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "Gates", "href": "/gates"}, {"label": gate.gate_id}]) }}{% endblock %}
+{% block content %}
+<h1>{{ gate.title }}</h1>
+<p>
+  <span class="mono">{{ gate.gate_id }}</span> &middot;
+  <span class="{{ gate.classification|classification_badge }}">{{ gate.classification or "?" }}</span> &middot;
+  status <strong>{{ gate.status }}</strong>
+</p>
+
+{# AMD-14: triggered_by is service-attested. The portal does NOT verify it
+   independently — see src/portal/routers/gates.py module docstring. #}
+<p>
+  <strong>Triggered by:</strong> <span class="mono">{{ gate.triggered_by or "—" }}</span>
+  <span class="muted">(service-attested per AMD-14)</span>
+</p>
+
+<div class="panel" id="evidence-panel">
+  <h3>Evidence snapshot</h3>
+  {% if gate.evidence_package_ids %}
+    <ul>
+      {% for pkg_id in gate.evidence_package_ids %}
+        <li><a href="/evidence/{{ pkg_id }}">{{ pkg_id }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No evidence packages linked.</p>
+  {% endif %}
+  <h4>Payload</h4>
+  <pre class="mono">{{ gate.payload | tojson(indent=2) }}</pre>
+</div>
+
+{% if sod_violation %}
+  <div class="alert-error">
+    <strong>SOX separation of duties:</strong> this gate was triggered by
+    your identity. A different compliance officer must decide. The decision
+    form is disabled.
+  </div>
+{% endif %}
+
+<div class="panel">
+  <h3>Decision</h3>
+  <form method="post" action="/gates/{{ gate.gate_id }}/decide">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {% if decision_nonce %}
+      <input type="hidden" name="decision_nonce" value="{{ decision_nonce }}">
+    {% endif %}
+    <div class="form-row">
+      <label>Decision</label>
+      <select name="decision" required {% if sod_violation %}disabled{% endif %}>
+        <option value="approve">Approve</option>
+        <option value="deny">Deny</option>
+        <option value="escalate">Escalate</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Rationale (min 20 chars, required)</label>
+      <textarea name="rationale" minlength="20" required
+                {% if sod_violation %}disabled{% endif %}></textarea>
+    </div>
+    <div class="form-row">
+      <label>Escalate to (only if Escalate)</label>
+      <select name="escalate_to_role" {% if sod_violation %}disabled{% endif %}>
+        <option value="">—</option>
+        <option value="admin">admin</option>
+        <option value="compliance_officer">compliance_officer</option>
+      </select>
+    </div>
+    <button type="submit" {% if sod_violation %}disabled{% endif %}>
+      Submit decision
+    </button>
+    {% if requires_mfa %}
+      <p class="muted">
+        This classification requires MFA step-up (60s freshness, AMD-03).
+      </p>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

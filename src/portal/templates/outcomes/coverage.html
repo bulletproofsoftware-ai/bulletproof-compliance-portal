@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, kpi_cards, breadcrumbs, empty_state %}
+{% block title %}Evidence Coverage{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "Evidence Coverage",
+  "Per-project BRD requirement coverage — how many requirements have reached a complete/verified status.",
+  "REQ-CPL-007 · REQ-CPL-008") }}
+
+{% set projs = data.get("projects") or [] %}
+{% if projs %}
+{{ kpi_cards([
+  {"label": "Overall coverage", "value": "%.0f%%"|format(data.overall_pct)},
+  {"label": "Requirements covered", "value": data.overall_covered},
+  {"label": "Total requirements", "value": data.overall_total},
+]) }}
+<div class="panel">
+  <h3>By project</h3>
+  <table>
+    <thead>
+      <tr><th>Project</th><th>Covered</th><th>Total</th><th>Coverage</th></tr>
+    </thead>
+    <tbody>
+      {% for p in projs %}
+        <tr>
+          <td><a href="/projects/{{ p.project_id }}">{{ p.project_id }}</a></td>
+          <td>{{ p.covered }}</td>
+          <td>{{ p.total }}</td>
+          <td data-sort="{{ p.coverage_pct }}">
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span style="display:inline-block;height:8px;border-radius:4px;background:{{ 'var(--green)' if p.coverage_pct >= 80 else ('var(--amber)' if p.coverage_pct >= 50 else 'var(--red)') }};width:{{ p.coverage_pct }}%;max-width:100%;"></span>
+              <span>{{ "%.0f" % p.coverage_pct }}%</span>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+{{ empty_state("No BRD requirement data available.", "Coverage appears once projects have a BRD-tracker.") }}
+{% endif %}
+<p><a href="/outcomes">← Back to outcomes</a></p>
+{% endblock %}

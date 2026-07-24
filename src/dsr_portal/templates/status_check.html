@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Check DSR Status</title>
+  <style>
+    body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    label { display: block; font-weight: 600; margin-top: 1rem; }
+    input { width: 100%; padding: 0.5rem; margin-top: 0.25rem; box-sizing: border-box; }
+    button { background: #1f2937; color: #fff; padding: 0.6rem 1.2rem; border: 0; border-radius: 4px; cursor: pointer; margin-top: 1rem; }
+    .alert { background: #fef2f2; border-left: 4px solid #b91c1c; padding: 0.75rem; color: #b91c1c; margin: 1rem 0; }
+    .panel { border: 1px solid #e5e7eb; padding: 1rem; border-radius: 6px; margin: 1rem 0; }
+    .mono { font-family: ui-monospace, Menlo, monospace; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Check DSR status</h1>
+  {% if error %}
+    <div class="alert">{{ error }}</div>
+  {% endif %}
+
+  {% if status_payload %}
+    <div class="panel">
+      <h3>Reference: <span class="mono">{{ status_payload.reference }}</span></h3>
+      <p>Type: {{ status_payload.request_type }}</p>
+      <p>Current status: <strong>{{ status_payload.current_status }}</strong></p>
+      <p>Submitted: <span class="mono">{{ status_payload.submitted_at }}</span></p>
+      {% if status_payload.deadline_at %}
+        <p>Deadline: <span class="mono">{{ status_payload.deadline_at }}</span></p>
+      {% endif %}
+      {% if status_payload.days_remaining is not none %}
+        <p>Days remaining: <strong>{{ status_payload.days_remaining }}</strong></p>
+      {% endif %}
+    </div>
+    {% if status_payload.current_status == "identity_insufficient" %}
+      <h3>Re-upload identity proof</h3>
+      <form method="post" action="/dsr/identity-upload" enctype="multipart/form-data">
+        <input type="hidden" name="reference" value="{{ status_payload.reference }}">
+        <label for="email_re">Email</label>
+        <input type="email" id="email_re" name="email" required>
+        <label for="identity_proof_re">New proof (PDF, JPG, or PNG; max 5MB)</label>
+        <input type="file" id="identity_proof_re" name="identity_proof" accept=".pdf,.jpg,.jpeg,.png" required>
+        <label for="captcha_token_re">CAPTCHA</label>
+        <input type="text" id="captcha_token_re" name="captcha_token">
+        <button type="submit">Re-upload</button>
+      </form>
+    {% endif %}
+  {% else %}
+    <form method="post" action="/dsr/status">
+      <label for="reference">Reference number</label>
+      <input type="text" id="reference" name="reference" required>
+
+      <label for="email">Your email</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="captcha_token">CAPTCHA</label>
+      <input type="text" id="captcha_token" name="captcha_token">
+
+      <button type="submit">Check status</button>
+    </form>
+  {% endif %}
+</body>
+</html>

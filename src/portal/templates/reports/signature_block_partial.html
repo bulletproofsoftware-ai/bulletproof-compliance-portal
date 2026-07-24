@@ -1,0 +1,18 @@
+<div class="panel">
+  <h3>Signature (AMD-04 + AMD-08)</h3>
+  <table>
+    <tr><th>Algorithm</th><td>Ed25519</td></tr>
+    <tr><th>Signing key id</th><td class="mono">{{ report.signing_key_id }}</td></tr>
+    <tr><th>Signed at</th><td class="mono">{{ report.signed_at.isoformat() if report.signed_at else "—" }}</td></tr>
+    <tr><th>Signed by</th><td class="mono">{{ report.signed_by }}</td></tr>
+  </table>
+  <p class="muted">
+    Resolve the signing key via the compliance service JWKS endpoint
+    (<code>/api/v1/compliance/keys/jwks.json</code>) to verify independently.
+    PDF exports of signed reports embed a PAdES byterange Ed25519 signature
+    via WI-19 (AMD-08).
+  </p>
+  <p>
+    <a href="/export/pdf/regulatory_report/{{ report.report_id }}">Download signed PDF →</a>
+  </p>
+</div>

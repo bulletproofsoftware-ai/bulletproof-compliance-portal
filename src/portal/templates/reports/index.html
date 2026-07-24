@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, kpi_cards, empty_state, breadcrumbs %}
+{% block title %}Regulatory Reports{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "Regulatory Reports",
+  "On-demand regulator-ready artifacts. Five-stage workflow: draft → review → approved → signed → delivered.",
+  "REQ-CPL-022..026") }}
+{{ kpi_cards(kpis) }}
+
+{% if is_writable %}
+<div class="panel">
+  <h3>Generate new report</h3>
+  <p>
+    <a href="/reports/new/sox_attestation"><button>SOX management attestation</button></a>
+    <a href="/reports/new/nydfs_part500"><button>NY DFS Part 500</button></a>
+    <a href="/reports/new/eu_ai_act_conformity"><button>EU AI Act conformity</button></a>
+    <a href="/reports/new/naic_adverse_action"><button>NAIC adverse action</button></a>
+  </p>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h3>Past reports</h3>
+  {% if reports.items %}
+  <table>
+    <thead>
+      <tr><th>Report</th><th>Type</th><th>Stage</th><th>Created</th><th>Signed</th></tr>
+    </thead>
+    <tbody>
+      {% for r in reports.items %}
+        <tr>
+          <td><a href="/reports/{{ r.report_id }}" class="mono">{{ r.report_id }}</a></td>
+          <td>{{ r.report_type }}</td>
+          <td><span class="badge badge-{{ 'restricted' if r.stage in ('signed','delivered') else 'internal' }}">{{ r.stage }}</span></td>
+          <td>{{ r.created_at.strftime("%Y-%m-%d") }}</td>
+          <td>{{ r.signed_at.strftime("%Y-%m-%d") if r.signed_at else "—" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  {{ empty_state("No reports yet.", "Generated regulatory reports will appear here.") }}
+  {% endif %}
+</div>
+{% endblock %}

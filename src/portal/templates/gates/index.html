@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, kpi_cards, empty_state, breadcrumbs %}
+{% block title %}Gate Decisions{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "Gate Decisions",
+  "Review and decide pending human gates. Confidential or restricted decisions require MFA step-up (60-second freshness).",
+  "REQ-CPL-009 · AMD-03") }}
+{{ kpi_cards(kpis) }}
+
+<div class="panel">
+  <h3>Pending queue</h3>
+  {% if gates.items %}
+  <table>
+    <thead>
+      <tr>
+        <th>Gate</th>
+        <th>Classification</th>
+        <th>Triggered by</th>
+        <th>SLA remaining</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for g in gates.items %}
+        <tr>
+          <td>
+            <a href="/gates/{{ g.gate_id }}">{{ g.title }}</a><br>
+            <span class="mono muted">{{ g.gate_id }}</span>
+          </td>
+          <td><span class="{{ g.classification|classification_badge }}">{{ g.classification or "?" }}</span></td>
+          <td class="mono">{{ g.triggered_by or "—" }}</td>
+          <td>
+            {% set band = sla_remaining_seconds.get(g.gate_id) | sla_band %}
+            <span class="sla-{{ band }}">{{ sla_remaining_text.get(g.gate_id, "—") }}</span>
+          </td>
+          <td><a href="/gates/{{ g.gate_id }}">decide →</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  {{ empty_state("No pending gates.", "Gates awaiting a decision will appear here.") }}
+  {% endif %}
+</div>
+
+{% if decided_gates and decided_gates.items %}
+<div class="panel">
+  <h3>Recent decisions ({{ decided_gates.items|length }})</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Gate</th>
+        <th>Classification</th>
+        <th>Decision</th>
+        <th>Decided by</th>
+        <th>Decided at</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for g in decided_gates.items %}
+        <tr>
+          <td>
+            <a href="/gates/{{ g.gate_id }}">{{ g.title or g.gate_id }}</a><br>
+            <span class="mono muted">{{ g.gate_id }}</span>
+          </td>
+          <td><span class="{{ g.classification|classification_badge }}">{{ g.classification or "?" }}</span></td>
+          <td><strong>{{ g.decision or "—" }}</strong></td>
+          <td class="mono">{{ g.decided_by or "—" }}</td>
+          <td class="mono">{{ g.decided_at or "—" }}</td>
+          <td><a href="/gates/{{ g.gate_id }}/receipt">receipt →</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

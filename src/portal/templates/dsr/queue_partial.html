@@ -1,0 +1,45 @@
+<table>
+  <thead>
+    <tr>
+      <th>Reference</th>
+      <th>Type</th>
+      <th>Status</th>
+      <th>Submitted</th>
+      <th>SLA remaining</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% if rows %}
+    {% for row in rows %}
+      <tr>
+        <td>
+          <a href="/dsr/{{ row.request.request_id }}">{{ row.request.request_id }}</a>
+          {% if row.is_self_submitted %}
+            <br><span class="badge badge-confidential">SELF (SoD)</span>
+          {% endif %}
+        </td>
+        <td>{{ row.request.request_type }}</td>
+        <td>
+          <span class="badge badge-{{ 'restricted' if row.request.status in ('rejected','identity_rejected') else 'internal' }}">
+            {{ row.request.status }}
+          </span>
+        </td>
+        <td>{{ row.request.submitted_at.strftime("%Y-%m-%d") if row.request.submitted_at else "—" }}</td>
+        <td>
+          {% if row.is_terminal %}
+            <span class="muted">—</span>
+          {% else %}
+            <span class="sla-{{ 'red' if row.band in ('red','overdue') else ('amber' if row.band == 'amber' else 'green') }}">
+              {{ row.band|upper }} ({{ row.remaining_int }}d)
+            </span>
+          {% endif %}
+        </td>
+        <td><a href="/dsr/{{ row.request.request_id }}">open →</a></td>
+      </tr>
+    {% endfor %}
+  {% else %}
+    <tr><td colspan="6" class="muted">No DSR requests in scope.</td></tr>
+  {% endif %}
+  </tbody>
+</table>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DSR Submission Receipt</title>
+  <style>
+    body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    .panel { border: 1px solid #e5e7eb; padding: 1rem; border-radius: 6px; }
+    .mono { font-family: ui-monospace, Menlo, monospace; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Submission received</h1>
+  <div class="panel">
+    <p>Your reference number is:</p>
+    <p class="mono"><strong>{{ reference }}</strong></p>
+    {% if submitted_at %}
+      <p>Submitted at: <span class="mono">{{ submitted_at }}</span></p>
+    {% endif %}
+  </div>
+
+  <h2>Next steps</h2>
+  <p>You will receive an email confirming your submission. If we need more
+  identity proof, that email will direct you back to this portal — please
+  enter the same reference number and email address.</p>
+  <p>You can check status at any time: <a href="/dsr/status">/dsr/status</a></p>
+
+  {% if receipt_payload %}
+    <div class="panel">
+      <h3>Receipt details</h3>
+      <pre class="mono">{{ receipt_payload }}</pre>
+    </div>
+  {% endif %}
+</body>
+</html>

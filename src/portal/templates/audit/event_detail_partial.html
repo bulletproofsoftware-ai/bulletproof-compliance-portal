@@ -1,0 +1,48 @@
+{# WI-04 — single event detail with hash-chain panel (AMD-07) #}
+<div class="panel">
+  <h2>Event {{ event.event_id }}</h2>
+  <p>
+    <strong>Type:</strong> {{ event.audit_type }} &middot;
+    <strong>Classification:</strong>
+    <span class="{{ event.classification|classification_badge }}">{{ event.classification or "?" }}</span>
+  </p>
+  <p>
+    <strong>Timestamp:</strong> <span class="mono">{{ event.ts.isoformat() if event.ts else "—" }}</span>
+  </p>
+  <p>
+    <strong>User:</strong> <span class="mono">{{ event.user_id or "—" }}</span>
+  </p>
+  <p>
+    <strong>Chain index:</strong> #{{ event.chain_index }}<br>
+    <strong>Hash:</strong> <span class="mono">{{ event.chain_hash or "—" }}</span><br>
+    <strong>Prev hash:</strong> <span class="mono">{{ event.prev_hash or "—" }}</span>
+  </p>
+
+  {# AMD-07 — client-side hash recomputation banner. The /audit/verify/{id}
+     endpoint returns service verdict + canonical bytes; the JS recomputes
+     SHA-256 client-side and compares. If verdicts disagree → red banner. #}
+  <div id="verify-{{ event.event_id }}" class="panel" style="margin-top:0.5rem">
+    <button type="button"
+            hx-get="/audit/verify/{{ event.event_id }}"
+            hx-target="#verify-{{ event.event_id }}"
+            hx-swap="innerHTML">
+      Verify hash chain
+    </button>
+    <p class="muted" style="margin-top:0.5rem">
+      Click to perform service-side verification AND client-side recomputation.
+    </p>
+  </div>
+
+  <h3>Payload</h3>
+  <pre class="mono">{{ event.payload | tojson(indent=2) }}</pre>
+
+  <p>
+    <a href="/export/pdf/audit_event/{{ event.event_id }}">Export as PDF</a> &middot;
+    {% if event.payload.get("session_id") %}
+      <a href="#"
+         hx-get="/audit/sessions/{{ event.payload['session_id'] }}"
+         hx-target="#cp-modal-body"
+         hx-swap="innerHTML">View session timeline</a>
+    {% endif %}
+  </p>
+</div>

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% from "_components.html" import breadcrumbs %}
+{% block title %}Incident {{ incident.incident_id }}{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "Incidents", "href": "/incidents"}, {"label": incident.incident_id}]) }}{% endblock %}
+{% block content %}
+<h1>{{ incident.title or incident.incident_id }}</h1>
+<p class="muted">Severity {{ incident.severity }} · status <span class="badge badge-internal">{{ incident.status }}</span> · source {{ incident.source }}</p>
+
+<div class="panel" id="countdown-banner">
+  {% include "incidents/timer_partial.html" %}
+</div>
+
+<div class="panel">
+  <h3>Investigation notes (append-only)</h3>
+  <p class="muted">AMD-19: markdown is rendered with <code>html=False</code> + Bleach allowlist before persistence.</p>
+  <form hx-post="/incidents/{{ incident.incident_id }}/notes"
+        hx-target="#notes-thread"
+        hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-row">
+      <label for="content">Note (markdown)</label>
+      <textarea id="content" name="content" rows="3" required></textarea>
+    </div>
+    <div class="form-row">
+      <label for="tags">Tags (comma-separated)</label>
+      <input type="text" id="tags" name="tags">
+    </div>
+    <button type="submit">Add note</button>
+  </form>
+  <div id="notes-thread">
+    {% include "incidents/notes_partial.html" %}
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Notifications</h3>
+  <form hx-post="/incidents/{{ incident.incident_id }}/notify"
+        hx-target="#notifications-list"
+        hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-row">
+      <label for="recipient">Recipient</label>
+      <input type="text" id="recipient" name="recipient" required>
+    </div>
+    <div class="form-row">
+      <label for="channel">Channel</label>
+      <select id="channel" name="channel">
+        <option value="email">email</option>
+        <option value="regulator_portal">regulator_portal</option>
+        <option value="phone">phone</option>
+        <option value="fax">fax</option>
+        <option value="in_person">in_person</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="confirmation_id">Confirmation ID</label>
+      <input type="text" id="confirmation_id" name="confirmation_id">
+    </div>
+    <div class="form-row">
+      <label for="notification_status">Status</label>
+      <select id="notification_status" name="notification_status">
+        <option value="pending">pending</option>
+        <option value="sent" selected>sent</option>
+        <option value="acknowledged">acknowledged</option>
+        <option value="failed">failed</option>
+      </select>
+    </div>
+    <button type="submit">Record notification</button>
+  </form>
+  <div id="notifications-list">
+    {% include "incidents/notify_form_partial.html" %}
+  </div>
+</div>
+
+{% if incident.affected_session_ids %}
+<div class="panel">
+  <h3>Affected sessions</h3>
+  <ul>
+    {% for sid in incident.affected_session_ids %}
+      <li><a href="/audit/timeline/{{ sid }}" class="mono">{{ sid }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if valid_next_states %}
+<div class="panel">
+  <h3>Status transition</h3>
+  <form hx-post="/incidents/{{ incident.incident_id }}/transition"
+        hx-target="#countdown-banner"
+        hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-row">
+      <label for="to_status">Next status</label>
+      <select id="to_status" name="to_status">
+        {% for s in valid_next_states %}
+          <option value="{{ s }}">{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Transition</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

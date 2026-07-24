@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ project.name }} — {{ doc.name }}</title>
+</head>
+<body>
+  <h1>{{ doc.name }}</h1>
+  <p>Project: {{ project.name }} ({{ project.project_id }})</p>
+  <p>Path: {{ doc.path }} · Type: {{ doc.doc_type }} · Last modified: {{ doc.last_modified }}</p>
+
+  <hr>
+
+  {{ doc_html|safe }}
+
+  <hr>
+
+  {% if history.items %}
+    <h2>Version history</h2>
+    <table>
+      <thead><tr><th>SHA</th><th>Author</th><th>Timestamp</th><th>Message</th></tr></thead>
+      <tbody>
+        {% for v in history.items %}
+          <tr>
+            <td>{{ v.version_id[:8] }}</td>
+            <td>{{ v.author }}</td>
+            <td>{{ v.timestamp }}</td>
+            <td>{{ v.message }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</body>
+</html>

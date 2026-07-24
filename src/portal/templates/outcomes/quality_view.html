@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Quality Trends{% endblock %}
+{% block content %}
+<h1>Quality trends</h1>
+<p class="muted">REQ-CPL-031 — period <span class="mono">{{ period_start }}</span>
+  → <span class="mono">{{ period_end }}</span></p>
+
+<div class="panel">
+  <h2>Trend ({{ trends.points|length }} points)</h2>
+  <svg viewBox="0 0 600 80" width="100%" height="80"
+       class="sparkline-large" data-values='{{ trend_values|tojson }}'></svg>
+  {% if trends.points %}
+    <details style="margin-top: 1rem">
+      <summary>Show data points</summary>
+      <table>
+        <thead><tr><th>As of</th><th>Score</th></tr></thead>
+        <tbody>
+          {% for p in trends.points %}
+            <tr>
+              <td><span class="mono">{{ p.asof }}</span></td>
+              <td>{{ "%.2f" % p.score }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </details>
+  {% else %}
+    <p class="muted">No quality data for the selected period.</p>
+  {% endif %}
+</div>
+
+<script src="/static/js/dashboards.js" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".sparkline-large").forEach(function (el) {
+      try {
+        var values = JSON.parse(el.dataset.values || "[]");
+        if (window.ComplianceDashboards) {
+          window.ComplianceDashboards.renderSparkline(el, values);
+        }
+      } catch (e) { /* ignore */ }
+    });
+  });
+</script>
+<p><a href="/outcomes">Back to overview</a></p>
+{% endblock %}

@@ -1,0 +1,113 @@
+# syntax=docker/dockerfile:1.7
+# WI-18 — Internal Compliance Portal production image.
+#
+# Multi-stage build:
+#   1. builder  — installs Python deps into a dedicated virtualenv
+#   2. runtime  — slim final image with only runtime native deps + venv
+#
+# Hardening:
+#   - Non-root app user (uid:gid = 10001:10001), no shell, no home writes
+#   - Tini as PID 1 for clean signal handling and zombie reaping
+#   - WeasyPrint native deps (libcairo, libpango, libgdk-pixbuf, fonts)
+#   - HEALTHCHECK on /healthz
+#   - entrypoint.sh sources file-mounted secrets per AMD-20
+
+###############################################################################
+# Stage 1: builder
+###############################################################################
+FROM python:3.12-slim AS builder
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    VIRTUAL_ENV=/opt/venv
+
+# Build deps required to compile some pinned wheels (cryptography, asyncpg, etc).
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        build-essential \
+        gcc \
+        libffi-dev \
+        libssl-dev \
+        pkg-config \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv "$VIRTUAL_ENV"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+WORKDIR /build
+COPY requirements.txt ./
+RUN pip install --upgrade pip wheel \
+ && pip install -r requirements.txt
+
+###############################################################################
+# Stage 2: runtime
+###############################################################################
+FROM python:3.12-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
+    VIRTUAL_ENV=/opt/venv \
+    PATH=/opt/venv/bin:/usr/local/bin:/usr/bin:/bin \
+    APP_MODE=internal \
+    APP_ENV=production \
+    LOG_LEVEL=INFO \
+    PORT=8001
+
+# Runtime native deps:
+#   - tini             : PID 1
+#   - curl             : HEALTHCHECK
+#   - libcairo2 / libpango-1.0-0 / libpangoft2-1.0-0 / libgdk-pixbuf-2.0-0 :
+#                        WeasyPrint render path
+#   - libffi8 / libssl3: cryptography wheel runtime
+#   - fonts-dejavu / fonts-liberation : PDF text glyphs
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        tini \
+        curl \
+        passwd \
+        libcairo2 \
+        libpango-1.0-0 \
+        libpangoft2-1.0-0 \
+        libgdk-pixbuf-2.0-0 \
+        libffi8 \
+        libssl3 \
+        shared-mime-info \
+        fonts-dejavu \
+        fonts-liberation \
+ && rm -rf /var/lib/apt/lists/*
+
+# Non-root user (uid:gid = 10001:10001), no login shell, no home writes.
+RUN /usr/sbin/groupadd --system --gid 10001 app \
+ && /usr/sbin/useradd --system --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin app
+
+# Copy virtualenv from builder.
+COPY --from=builder /opt/venv /opt/venv
+
+# App layout — only what the internal portal needs.
+WORKDIR /app
+COPY --chown=app:app src/portal /app/src/portal
+COPY --chown=app:app src/shared /app/src/shared
+COPY --chown=app:app docker/entrypoint.sh /app/entrypoint.sh
+RUN chmod 0755 /app/entrypoint.sh
+
+# Drop privileges.
+USER app:app
+
+EXPOSE 8001
+
+# /healthz is wired in src/portal/routers/health.py.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl --fail --silent --show-error http://127.0.0.1:8001/healthz || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/app/entrypoint.sh"]
+CMD ["uvicorn", "portal.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8001", \
+     "--workers", "2", \
+     "--proxy-headers", \
+     "--forwarded-allow-ips", "127.0.0.1", \
+     "--no-server-header", \
+     "--access-log"]

@@ -1,0 +1,30 @@
+{# REQ-CPL-044 — git-backed version history partial. #}
+<h3>Version history — <span class="mono">{{ doc_path }}</span></h3>
+{% if history.items %}
+  <table>
+    <thead>
+      <tr><th>Version</th><th>Author</th><th>Timestamp</th><th>Message</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for v in history.items %}
+        <tr>
+          <td><span class="mono">{{ v.version_id[:8] }}</span></td>
+          <td>{{ v.author }}</td>
+          <td><span class="mono">{{ v.timestamp }}</span></td>
+          <td>{{ v.message }}</td>
+          <td>
+            {% if not loop.first %}
+              <a href="/projects/{{ project_id }}/docs/{{ doc_path }}/diff?from={{ v.version_id }}&to={{ history.items[0].version_id }}"
+                 hx-get="/projects/{{ project_id }}/docs/{{ doc_path }}/diff?from={{ v.version_id }}&to={{ history.items[0].version_id }}"
+                 hx-target="#diff-area"
+                 hx-swap="innerHTML">diff vs head</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="muted">No history available.</p>
+{% endif %}
+<div id="diff-area" class="panel" style="display: block; margin-top: 1rem"></div>

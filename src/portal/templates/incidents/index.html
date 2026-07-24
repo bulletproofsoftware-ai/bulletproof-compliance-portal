@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, kpi_cards, empty_state, breadcrumbs %}
+{% block title %}Incidents{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "Incidents",
+  "Security incidents with the NY DFS Part 500 72-hour notification countdown.",
+  "REQ-CPL-016") }}
+{{ kpi_cards(kpis) }}
+
+<div class="panel">
+  {% if rows %}
+  <table>
+    <thead>
+      <tr>
+        <th>Incident</th>
+        <th>Severity</th>
+        <th>Status</th>
+        <th>72h remaining</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>
+            <a href="/incidents/{{ row.incident.incident_id }}">{{ row.incident.title or row.incident.incident_id }}</a>
+            <br><span class="mono muted">{{ row.incident.incident_id }}</span>
+          </td>
+          <td><span class="badge badge-{{ 'restricted' if row.incident.severity in ('high','critical') else 'internal' }}">{{ row.incident.severity }}</span></td>
+          <td><span class="badge badge-internal">{{ row.incident.status }}</span></td>
+          <td>
+            <span class="sla-{{ 'red' if row.band in ('red','overdue') else ('amber' if row.band == 'amber' else 'green') }}">
+              {{ row.band|upper }} ({{ row.remaining }})
+            </span>
+          </td>
+          <td><a href="/incidents/{{ row.incident.incident_id }}">open →</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  {{ empty_state("No incidents.", "Reported incidents will appear here with their 72h countdown.") }}
+  {% endif %}
+</div>
+{% endblock %}

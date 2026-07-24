@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "_components.html" import breadcrumbs %}
+{% block title %}Report {{ report.report_id }}{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs([{"label": "Reports", "href": "/reports"}, {"label": report.report_id}]) }}{% endblock %}
+{% block content %}
+<h1>Report {{ report.report_id }}</h1>
+<p class="muted">Type: {{ report.report_type }} · stage <span class="badge badge-{{ 'restricted' if report.stage in ('signed','delivered') else 'internal' }}">{{ report.stage }}</span></p>
+
+<div class="panel">
+  <h3>Stage progression</h3>
+  <ol>
+    <li class="{{ 'sla-green' if report.stage in ['draft','review','approved','signed','delivered'] else 'muted' }}">draft</li>
+    <li class="{{ 'sla-green' if report.stage in ['review','approved','signed','delivered'] else 'muted' }}">review</li>
+    <li class="{{ 'sla-green' if report.stage in ['approved','signed','delivered'] else 'muted' }}">approved</li>
+    <li class="{{ 'sla-green' if report.stage in ['signed','delivered'] else 'muted' }}">signed</li>
+    <li class="{{ 'sla-green' if report.stage == 'delivered' else 'muted' }}">delivered</li>
+  </ol>
+</div>
+
+<div class="panel">
+  <h3>Metadata</h3>
+  <table>
+    <tr><th>Created by</th><td class="mono">{{ report.created_by }}</td></tr>
+    <tr><th>Created at</th><td class="mono">{{ report.created_at.isoformat() }}</td></tr>
+    {% if report.period_start %}<tr><th>Period</th><td>{{ report.period_start.strftime("%Y-%m-%d") }} → {{ report.period_end.strftime("%Y-%m-%d") }}</td></tr>{% endif %}
+    {% if report.scope_notes %}<tr><th>Scope notes</th><td>{{ report.scope_notes }}</td></tr>{% endif %}
+    {% if report.approved_by %}<tr><th>Approved by</th><td class="mono">{{ report.approved_by }}</td></tr>{% endif %}
+  </table>
+</div>
+
+{% if report.signature %}
+  {% include "reports/signature_block_partial.html" %}
+{% endif %}
+
+{% if is_writable %}
+<div class="panel" id="transition-panel">
+  <h3>Transitions</h3>
+  {% if 'review' in valid_next_stages %}
+    <form hx-post="/reports/{{ report.report_id }}/review"
+          hx-target="#transition-panel" hx-swap="innerHTML">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit">Submit for review (draft → review)</button>
+    </form>
+  {% endif %}
+  {% if 'approved' in valid_next_stages %}
+    <form hx-post="/reports/{{ report.report_id }}/approve"
+          hx-target="#transition-panel" hx-swap="innerHTML">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit">Approve (review → approved, admin only)</button>
+    </form>
+  {% endif %}
+  {% if can_sign and decision_nonce %}
+    <form hx-post="/reports/{{ report.report_id }}/sign"
+          hx-target="#signature-block" hx-swap="innerHTML">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="decision_nonce" value="{{ decision_nonce }}">
+      <button type="submit">Sign (approved → signed, MFA required)</button>
+    </form>
+  {% endif %}
+</div>
+
+{% if can_deliver %}
+<div class="panel" id="delivery-panel">
+  <h3>Delivery</h3>
+  <form hx-post="/reports/{{ report.report_id }}/deliver"
+        hx-target="#delivery-panel" hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-row">
+      <label for="recipient">Recipient</label>
+      <input type="text" id="recipient" name="recipient" required>
+    </div>
+    <div class="form-row">
+      <label for="channel">Channel</label>
+      <select id="channel" name="channel">
+        <option value="email">email</option>
+        <option value="secure_download">secure_download</option>
+        <option value="regulator_portal">regulator_portal</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="confirmation_receipt">Confirmation receipt</label>
+      <input type="text" id="confirmation_receipt" name="confirmation_receipt">
+    </div>
+    <button type="submit">Record delivery</button>
+  </form>
+</div>
+{% endif %}
+{% endif %}
+
+<div id="signature-block">
+  {% if not report.signature %}
+    <p class="muted">Not yet signed.</p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h3>Deliveries</h3>
+  {% include "reports/delivery_log_partial.html" %}
+</div>
+{% endblock %}

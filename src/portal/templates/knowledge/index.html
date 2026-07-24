@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, kpi_cards, breadcrumbs %}
+{% block title %}Process Knowledge Verification{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "Process Knowledge Verification",
+  "SME review of knowledge candidates — approve, reject, or modify proposed rules and SOPs.",
+  "REQ-CPL-029 · REQ-CPL-030") }}
+{{ kpi_cards(kpis) }}
+
+<details class="filters">
+  <summary>Filters</summary>
+  <form method="get" action="/knowledge">
+    <label for="candidate_status">Status:</label>
+    <select id="candidate_status" name="candidate_status" onchange="this.form.submit()">
+      <option value="pending" {% if candidate_status == "pending" %}selected{% endif %}>Pending</option>
+      <option value="approved" {% if candidate_status == "approved" %}selected{% endif %}>Approved</option>
+      <option value="rejected" {% if candidate_status == "rejected" %}selected{% endif %}>Rejected</option>
+      <option value="modified" {% if candidate_status == "modified" %}selected{% endif %}>Modified</option>
+      <option value="" {% if not candidate_status %}selected{% endif %}>— all —</option>
+    </select>
+    <span class="muted" style="margin-left: 1rem">Type filter:</span>
+    {% for t in knowledge_types %}
+      <a href="/knowledge/types/{{ t }}">{{ t }}</a>{% if not loop.last %} | {% endif %}
+    {% endfor %}
+  </form>
+</details>
+
+<form id="batch-form"
+      method="post"
+      hx-post="/knowledge/batch"
+      hx-target="#batch-result"
+      hx-swap="innerHTML">
+  <div class="panel">
+    <h3>Candidates ({{ candidates.total or candidates.items|length }})</h3>
+    {% if candidates.items %}
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" onclick="toggleAll(this)"></th>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Domain</th>
+            <th>Status</th>
+            <th>Source</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in candidates.items %}
+            <tr>
+              <td><input type="checkbox" name="candidate_ids" value="{{ c.candidate_id }}" form="batch-form"></td>
+              <td><a href="/knowledge/{{ c.candidate_id }}"><span class="mono">{{ c.candidate_id }}</span></a></td>
+              <td>{{ c.knowledge_type }}</td>
+              <td>{{ c.domain }}</td>
+              <td>{{ c.status }}</td>
+              <td>{{ c.source.source_type }}<span class="muted"> ({{ "%.2f" % c.source.confidence }})</span></td>
+              <td><span class="mono">{{ c.created_at }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No candidates match the current filter.</p>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <h3>Batch operation</h3>
+    <p class="muted">REQ-CPL-030 — apply the same decision to all selected candidates above.</p>
+    <div class="form-row">
+      <label>Action</label>
+      <select name="action">
+        <option value="approve">Approve</option>
+        <option value="reject">Reject</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Rationale (>= 30 chars)</label>
+      <textarea name="rationale" rows="3" minlength="30" required></textarea>
+    </div>
+    <button type="submit">Apply to selected</button>
+    <p>
+      <input type="hidden" name="candidate_ids" id="csv-ids" value="">
+    </p>
+  </div>
+</form>
+
+<div id="batch-result" class="panel"></div>
+
+<script>
+  function toggleAll(src) {
+    document.querySelectorAll("input[name='candidate_ids']").forEach(function (cb) {
+      cb.checked = src.checked;
+    });
+  }
+  // Combine selected ids into the hidden csv field on submit.
+  document.getElementById("batch-form").addEventListener("htmx:configRequest", function (ev) {
+    var ids = [];
+    document.querySelectorAll("input[name='candidate_ids']:checked").forEach(function (cb) {
+      ids.push(cb.value);
+    });
+    ev.detail.parameters["candidate_ids"] = ids.join(",");
+  });
+</script>
+{% endblock %}

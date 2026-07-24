@@ -1,0 +1,74 @@
+{# WI-04 / AMD-07 — hash-chain verification result with client-side recomputation banner. #}
+<div class="panel">
+  <h3>Hash chain verification</h3>
+  {% if not chained %}
+  <p class="muted">
+    This event is not part of the portal hash chain (no chain hash recorded),
+    so there is nothing to recompute. <span class="badge badge-unknown">N/A</span>
+  </p>
+  {% else %}
+  <p>
+    <strong>Service verdict:</strong>
+    {% if service_pass %}
+      <span class="badge badge-public">PASS</span>
+    {% else %}
+      <span class="badge badge-restricted">FAIL</span>
+    {% endif %}
+  </p>
+  <p>
+    <strong>Client recomputation:</strong>
+    <span id="client-verdict-{{ event.event_id }}" class="badge badge-unknown">computing...</span>
+  </p>
+
+  {# Hidden inputs the embedded JS reads to recompute the canonical SHA-256.
+     The canonicalization mirrors PRD-18: sorted-keys JSON of {payload, prev_hash}.
+     If the recomputed hash MATCHES `event.chain_hash` → MATCH; else MISMATCH. #}
+  <script type="application/json" id="verify-data-{{ event.event_id }}">
+    {{ verify_payload | tojson }}
+  </script>
+  <div id="integrity-banner-{{ event.event_id }}" style="display:none">
+    <div class="integrity-alert">
+      INTEGRITY ALERT — service and client verdicts disagree; investigate immediately.
+    </div>
+  </div>
+  <script>
+  (async function () {
+    var EID = {{ event.event_id | tojson }};
+    var dataEl = document.getElementById("verify-data-" + EID);
+    if (!dataEl) return;
+    var data;
+    try { data = JSON.parse(dataEl.textContent); }
+    catch (e) { return; }
+    // Defense-in-depth: nothing to verify without an expected chain hash.
+    if (!data.expected_hash) {
+      var nb = document.getElementById("client-verdict-" + EID);
+      if (nb) { nb.textContent = "N/A"; nb.className = "badge badge-unknown"; }
+      return;
+    }
+    // Canonicalization (RFC 8785 JCS-equivalent for the subset we use):
+    // recursively sort object keys, no whitespace, JSON.stringify default.
+    function canonical(value) {
+      if (value === null || typeof value !== "object") return JSON.stringify(value);
+      if (Array.isArray(value)) return "[" + value.map(canonical).join(",") + "]";
+      var keys = Object.keys(value).sort();
+      return "{" + keys.map(function (k) {
+        return JSON.stringify(k) + ":" + canonical(value[k]);
+      }).join(",") + "}";
+    }
+    var input = canonical({payload: data.payload, prev_hash: data.prev_hash});
+    var bytes = new TextEncoder().encode(input);
+    var hashBuf = await crypto.subtle.digest("SHA-256", bytes);
+    var hashHex = Array.from(new Uint8Array(hashBuf))
+      .map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+    var match = (hashHex === data.expected_hash);
+    var badge = document.getElementById("client-verdict-" + EID);
+    badge.textContent = match ? "MATCH" : "MISMATCH";
+    badge.className = match ? "badge badge-public" : "badge badge-restricted";
+    var servicePass = {{ "true" if service_pass else "false" }};
+    if (match !== servicePass) {
+      document.getElementById("integrity-banner-" + EID).style.display = "block";
+    }
+  })();
+  </script>
+  {% endif %}
+</div>

@@ -1,0 +1,22 @@
+{# Batch operation result (HTMX response). #}
+<div class="alert-success">
+  <strong>Batch {{ action }} complete.</strong>
+  {{ result.successful }} succeeded, {{ result.failed }} failed.
+</div>
+{% if result.results %}
+  <details>
+    <summary>Per-candidate results</summary>
+    <table>
+      <thead><tr><th>Candidate</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+        {% for r in result.results %}
+          <tr>
+            <td><span class="mono">{{ r.candidate_id }}</span></td>
+            <td>{{ r.status }}</td>
+            <td>{{ r.note or "" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </details>
+{% endif %}

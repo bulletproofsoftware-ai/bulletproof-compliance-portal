@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Decision receipt {{ receipt.receipt_id }}{% endblock %}
+{% block content %}
+<h1>Decision receipt</h1>
+<div class="alert-success">
+  Decision recorded and signed by the compliance service.
+</div>
+
+<div class="panel">
+  <p>
+    <strong>Receipt id:</strong> <span class="mono">{{ receipt.receipt_id }}</span><br>
+    <strong>Gate id:</strong> <span class="mono">{{ receipt.gate_id }}</span><br>
+    <strong>Decision:</strong> <strong>{{ receipt.decision }}</strong><br>
+    <strong>Decided by:</strong> <span class="mono">{{ receipt.decided_by }}</span><br>
+    <strong>Decided at:</strong>
+    <span class="mono">{{ receipt.decided_at.isoformat() if receipt.decided_at else "—" }}</span>
+    {% if receipt.escalate_to_role %}
+      <br><strong>Escalated to:</strong> {{ receipt.escalate_to_role }}
+    {% endif %}
+  </p>
+  <p>
+    <strong>Rationale:</strong><br>
+    <em>{{ receipt.rationale }}</em>
+  </p>
+  <h3>Signature</h3>
+  <p>
+    <strong>Algorithm:</strong> Ed25519<br>
+    <strong>Key id:</strong> <span class="mono">{{ receipt.signing_key_id or "—" }}</span><br>
+    <strong>Signature (base64):</strong>
+    <span class="mono">{{ receipt.signature[:80] if receipt.signature else "—" }}…</span>
+  </p>
+  {% if receipt.evidence_snapshot %}
+  <h3>Evidence snapshot at decision time</h3>
+  <pre class="mono">{{ receipt.evidence_snapshot | tojson(indent=2) }}</pre>
+  {% endif %}
+  <p>
+    <a href="/export/pdf/gate_decision/{{ receipt.gate_id }}">
+      Download signed receipt as PDF
+    </a>
+  </p>
+</div>
+{% endblock %}

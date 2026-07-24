@@ -1,0 +1,51 @@
+{# Shared macros — header, footer, watermark, key/value rows #}
+
+{% macro page_header(project, title, user_identity, user_role, generated_at) %}
+<header class="pdf-header">
+  <span class="pdf-header__left">
+    {%- if project is mapping -%}
+      {{ project.name or project.project_id or "Compliance Portal" }}
+    {%- else -%}
+      {{ project or "Compliance Portal" }}
+    {%- endif -%}
+  </span>
+  <span class="pdf-header__center">{{ title }}</span>
+  <span class="pdf-header__right">
+    {{ user_identity }} ({{ user_role }})<br>
+    {{ generated_at }}
+  </span>
+</header>
+{% endmacro %}
+
+{% macro page_footer(integrity_hash_short) %}
+<footer class="pdf-footer">
+  <span class="pdf-footer__left">SHA-256: {{ integrity_hash_short }}</span>
+  <span class="pdf-footer__right">Compliance Portal</span>
+</footer>
+{% endmacro %}
+
+{% macro watermark_overlay(watermark) %}
+{% if watermark %}
+<div class="watermark" aria-hidden="true">
+  <div class="watermark__text">
+    AUDITOR — {{ watermark.auditor_sub }}<br>
+    Engagement: {{ watermark.engagement_id }}<br>
+    {{ watermark.timestamp_iso }}
+    {% if watermark.scope_summary %}<br>{{ watermark.scope_summary }}{% endif %}
+    {% if watermark.expires_at_iso %}<br>Expires: {{ watermark.expires_at_iso }}{% endif %}
+    <br><span class="watermark__id">id: {{ watermark.watermark_id }}</span>
+  </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro kv_row(label, value) %}
+<tr>
+  <th class="kv__label">{{ label }}</th>
+  <td class="kv__value">{{ value if value not in (None, '') else '—' }}</td>
+</tr>
+{% endmacro %}
+
+{% macro section(heading) %}
+<h2 class="section-heading">{{ heading }}</h2>
+{% endmacro %}

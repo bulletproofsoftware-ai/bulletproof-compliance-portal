@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Outcome summary</title>
+</head>
+<body>
+  <h1>Stakeholder outcome summary</h1>
+  <p>Period {{ period_start }} → {{ period_end }}</p>
+
+  <h2>KPIs</h2>
+  <table>
+    <tbody>
+      <tr><th>Total cost</th><td>${{ "%.2f" % summary.kpis.total_cost_usd }}</td></tr>
+      <tr><th>Total outcomes</th><td>{{ summary.kpis.total_outcomes }}</td></tr>
+      <tr><th>Cost per outcome</th><td>${{ "%.2f" % summary.kpis.cost_per_outcome_usd }}</td></tr>
+      <tr><th>Quality</th><td>{{ "%.1f" % summary.kpis.quality_score }}</td></tr>
+      <tr><th>ROI</th><td>{{ "%.2f" % summary.kpis.roi_ratio }}</td></tr>
+    </tbody>
+  </table>
+
+  {% if summary.top_agents %}
+    <h2>Top agents</h2>
+    <table>
+      <thead><tr><th>Agent</th><th>Invocations</th><th>Cost</th><th>Quality</th></tr></thead>
+      <tbody>
+        {% for a in summary.top_agents %}
+          <tr>
+            <td>{{ a.agent_name }}</td>
+            <td>{{ a.invocations }}</td>
+            <td>${{ "%.2f" % a.total_cost_usd }}</td>
+            <td>{{ "%.1f" % a.quality_avg }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</body>
+</html>

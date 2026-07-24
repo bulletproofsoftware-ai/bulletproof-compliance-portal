@@ -1,0 +1,55 @@
+{% import "_macros.html" as macros %}
+{# Regulatory report shell — SOX / NY DFS / EU AI Act / NAIC #}
+{{ macros.section("Regulatory Report") }}
+<table class="kv">
+  <tbody>
+    {{ macros.kv_row("Report ID", report.id if report else document_id) }}
+    {{ macros.kv_row("Framework", report.framework if report else "—") }}
+    {{ macros.kv_row("Period", report.period if report else "—") }}
+    {{ macros.kv_row("Submission deadline", report.deadline if report else "—") }}
+    {{ macros.kv_row("Status", report.status if report else "—") }}
+    {{ macros.kv_row("Prepared by", report.prepared_by if report else "—") }}
+    {{ macros.kv_row("Approved by", report.approved_by if report else "—") }}
+    {{ macros.kv_row("Approved at (UTC)", report.approved_at if report else "—") }}
+  </tbody>
+</table>
+
+{{ macros.section("Executive Summary") }}
+<p>{{ report.executive_summary if report and report.executive_summary else "—" }}</p>
+
+{{ macros.section("Findings") }}
+{% if report and report.findings %}
+<ol>
+  {% for f in report.findings %}
+  <li>
+    <strong>{{ f.title }}</strong> — {{ f.severity }}<br>
+    {{ f.description }}
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<p>None.</p>
+{% endif %}
+
+{{ macros.section("Attestations") }}
+{% if report and report.attestations %}
+<table class="data-table">
+  <thead>
+    <tr><th>Section</th><th>Attested by</th><th>At (UTC)</th></tr>
+  </thead>
+  <tbody>
+    {% for a in report.attestations %}
+    <tr><td>{{ a.section }}</td><td>{{ a.actor }}</td><td>{{ a.timestamp }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>—</p>
+{% endif %}
+
+<aside class="signature-note">
+  This document carries an Ed25519 cryptographic signature. The signature, signing key id,
+  and (where applicable) the byterange signature for the rendered PDF are recorded in the
+  PDF /Info dictionary. Verifiers resolve the key id against the compliance service JWKS
+  endpoint at <code>/api/v1/compliance/.well-known/jwks.json</code>.
+</aside>

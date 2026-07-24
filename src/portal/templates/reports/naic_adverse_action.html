@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}New NAIC Adverse Action{% endblock %}
+{% block content %}
+<h1>NAIC Adverse Action Log</h1>
+<p class="muted">REQ-CPL-025 — per event reference.</p>
+
+<form method="post" action="/reports/generate" class="panel">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="report_type" value="naic_adverse_action">
+  <div class="form-row">
+    <label for="triggering_event_id">Triggering event ID (audit event)</label>
+    <input type="text" id="triggering_event_id" name="triggering_event_id" required>
+  </div>
+  <div class="form-row">
+    <label for="affected_party">Affected party</label>
+    <input type="text" id="affected_party" name="affected_party" required>
+  </div>
+  <div class="form-row">
+    <label for="decision_summary">Decision summary</label>
+    <textarea id="decision_summary" name="decision_summary" rows="3" required></textarea>
+  </div>
+  <div class="form-row">
+    <label for="responsible_person">Named NAIC responsible person</label>
+    <input type="text" id="responsible_person" name="responsible_person" required>
+  </div>
+  <div class="form-row">
+    <label for="redress_option">Redress option</label>
+    <input type="text" id="redress_option" name="redress_option">
+  </div>
+  <button type="submit">Generate draft</button>
+</form>
+{% endblock %}

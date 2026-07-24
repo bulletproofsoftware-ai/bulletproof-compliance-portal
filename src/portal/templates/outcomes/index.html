@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, kpi_cards, breadcrumbs %}
+{% block title %}Outcomes & Economics{% endblock %}
+{% block breadcrumbs %}{{ breadcrumbs(crumbs) }}{% endblock %}
+{% block content %}
+{{ page_header(
+  "Outcomes & Economics",
+  "Read-only stakeholder dashboards for cost, quality, and ROI. Period: %s → %s"|format(period_start, period_end),
+  "REQ-CPL-031 · REQ-CPL-032") }}
+
+{% set headline = [
+  {"label": "Total cost (USD)", "value": "$%.2f"|format(kpis.total_cost_usd)},
+  {"label": "Total outcomes", "value": kpis.total_outcomes},
+  {"label": "Cost / outcome", "value": "$%.2f"|format(kpis.cost_per_outcome_usd)},
+  {"label": "Quality score", "value": "%.1f"|format(kpis.quality_score)},
+  {"label": "ROI ratio", "value": "%.2f"|format(kpis.roi_ratio)},
+] %}
+{{ kpi_cards(headline) }}
+
+<div class="panel">
+  <h2>Top agents</h2>
+  {% if top_agents %}
+    <table>
+      <thead>
+        <tr>
+          <th>Agent</th>
+          <th>Workflow</th>
+          <th>Project</th>
+          <th>Invocations</th>
+          <th>Total cost</th>
+          <th>Avg/cost</th>
+          <th>Quality avg</th>
+          <th>Success rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in top_agents %}
+        <tr>
+          <td><span class="mono">{{ a.agent_name }}</span></td>
+          <td>{{ a.workflow or "—" }}</td>
+          <td>{{ a.project or "—" }}</td>
+          <td>{{ a.invocations }}</td>
+          <td>${{ "%.2f" % a.total_cost_usd }}</td>
+          <td>${{ "%.4f" % a.avg_cost_per_invocation_usd }}</td>
+          <td>{{ "%.1f" % a.quality_avg }}</td>
+          <td>{{ "%.1f" % (a.success_rate * 100) }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No agent data for this period.</p>
+  {% endif %}
+</div>
+
+<p>
+  <a href="/outcomes/cost-per-outcome">Cost per outcome</a> ·
+  <a href="/outcomes/quality-trends">Quality trends</a> ·
+  <a href="/outcomes/agent-economics">Agent economics</a> ·
+  <a href="/outcomes/sla-trends">SLA trends</a> ·
+  <a href="/outcomes/evidence-coverage">Evidence coverage</a> ·
+  <a href="/outcomes/forecast">Forecast</a> ·
+  <a href="/outcomes/export">Stakeholder summary</a>
+</p>
+{% endblock %}
