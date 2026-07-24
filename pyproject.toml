@@ -30,7 +30,7 @@ dependencies = [
     "redis>=5.1.0,<6.0.0",
     "slowapi>=0.1.9,<0.2.0",
     "prometheus-client>=0.21.0,<0.22.0",
-    "starlette>=0.41.0,<0.42.0",
+    "starlette>=0.41.0,<1.4.0",
     # WI-19 — PDF Export Service (cross-cutting; required for REQ-CPL-045)
     # Native deps required: cairo, pango, gdk-pixbuf (brew install cairo pango gdk-pixbuf libffi)
     "weasyprint>=63.0,<70.0",
