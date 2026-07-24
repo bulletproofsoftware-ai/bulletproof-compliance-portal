@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Compliance portal — FastAPI + HTMX foundation (PRD-19)"
 requires-python = ">=3.12"
 authors = [{ name = "bulletproofsoftware-ai" }]
-license = { text = "Proprietary" }
+license = { text = "Apache-2.0" }
 readme = "README.md"
 dependencies = [
     "fastapi>=0.115.0,<0.116.0",
