@@ -154,9 +154,15 @@ services:
   # every endpoint the portal calls so /evidence /gates /dsr /incidents
   # /reports etc render their empty-state UIs instead of returning HTTP 500.
   # Future: wire this to the agentic-data-plane ComplianceEngine.
+  # Requires the compliance-service repository cloned as a SIBLING of this one:
+  #
+  #   cd ..                       # the directory containing bulletproof-compliance-portal
+  #   git clone https://github.com/bulletproofsoftware-ai/bulletproof-compliance-service.git
+  #
+  # Override COMPLIANCE_SERVICE_CONTEXT if you keep it somewhere else.
   compliance_service:
     build:
-      context: ../../compliance-service
+      context: ${COMPLIANCE_SERVICE_CONTEXT:-../../bulletproof-compliance-service}
       dockerfile: Dockerfile
     image: compliance-service:latest
     container_name: compliance-service
@@ -179,17 +185,27 @@ services:
       KNOWLEDGE_ROOT: /workspace/knowledge
     volumes:
       - compliance-data:/var/lib/compliance
-      # Real data sources — mounted READ-ONLY
+      # Optional data sources, mounted READ-ONLY. Each defaults to a directory
+      # inside this repo so a clean clone starts without extra setup; the
+      # service renders empty-state UIs when they hold no data. Point them at
+      # your real sources by setting these in docker/.env:
+      #
+      #   CODE_ROOT_HOST=/absolute/path/to/your/projects
+      #   GOVERNANCE_AUDIT_DB_HOST=/absolute/path/to/dir/containing/audit.db
+      #   KNOWLEDGE_ROOT_HOST=/absolute/path/to/knowledge
+      #
+      # A bind source must exist before `docker compose up`, or Docker creates
+      # it as a directory. The defaults below are committed with .gitkeep files.
       - type: bind
-        source: /path/to/projects
+        source: ${CODE_ROOT_HOST:-./sample-data/code}
         target: /workspace/code
         read_only: true
       - type: bind
-        source: ./data/audit.db
-        target: /workspace/governance/audit.db
+        source: ${GOVERNANCE_AUDIT_DB_HOST:-./sample-data/governance}
+        target: /workspace/governance
         read_only: true
       - type: bind
-        source: ./knowledge
+        source: ${KNOWLEDGE_ROOT_HOST:-./sample-data/knowledge}
         target: /workspace/knowledge
         read_only: true
     healthcheck:
@@ -347,31 +363,3 @@ services:
     profiles:
       - dev   # only runs when invoked with --profile dev
 
-  # ── docs_portal — project documentation viewer (FastAPI + Markdown + WeasyPrint)
-  # Marc's project doc browser. Mounts ~/Code read-only as DOCS_ROOT and serves
-  # a clickable index of every project's *.md / docs/**/*.md / README.md, with
-  # rendered HTML and PDF export. Source: ../docs-portal/.
-  # Reachable at http://localhost:8095/p/{project}.
-  docs_portal:
-    build:
-      context: ../docs-portal
-      dockerfile: Dockerfile
-    image: compliance-portal-docs:latest
-    container_name: compliance-portal-docs
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:8095:8095"
-    environment:
-      DOCS_ROOT: /docs
-    volumes:
-      - /path/to/projects:/docs:ro
-    healthcheck:
-      # The docs index walks the large mounted ~/Code tree and can take tens of
-      # seconds to render, so fetching "/" is unsuitable for a liveness probe.
-      # Check that the server socket is accepting connections instead — fast and
-      # render-free.
-      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1',8095),3).close()"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s

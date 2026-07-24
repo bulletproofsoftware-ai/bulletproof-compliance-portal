@@ -28,24 +28,24 @@ src/                    Application source
   shared/               Shared utilities (auth, RBAC, API client)
 tests/                  Test suite
 docker/                 Docker Compose and Dockerfiles
-docs/                   Generated documentation
-  TODO/                 Architect-generated implementation specs
-  specs/                Architecture specifications
+docs/                   Documentation (install, config, API, architecture)
 ```
 
 ## Commands
 
 ```bash
 # Development
-docker compose up -d              # Start all services
-docker compose logs -f portal     # Follow portal logs
-pytest tests/ -v                  # Run tests
+docker compose -f docker/compose.yaml up -d           # Start all services
+docker compose -f docker/compose.yaml logs -f portal  # Follow portal logs
+PYTHONPATH=src pytest -q                              # Run tests
 
 # Linting
 ruff check src/
 mypy src/
 ```
 
-## Conductor Workflow
+## Contributing
 
-This project is managed by conductor orchestration. State tracked in `conductor-state.json`. BRD requirements in `BRD-tracker.json`. MAJOR tier — all gates blocking.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the development workflow, coding
+standards, and review expectations. All changes must keep the test suite green
+(`PYTHONPATH=src pytest -q`) and pass `ruff check src/` and `mypy src/`.

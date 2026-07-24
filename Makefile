@@ -13,7 +13,7 @@ help:
 	@echo "  make test          Run pytest"
 	@echo "  make test-verbose  Run pytest -v"
 	@echo "  make run           uvicorn portal.main:app --reload"
-	@echo "  make docker-build  Build internal+public images (placeholder until WI-18)"
+	@echo "  make docker-build  Not implemented — prints the docker compose command to use"
 	@echo "  make clean         Remove caches and venv"
 
 venv:
@@ -41,8 +41,9 @@ run:
 	PYTHONPATH=src $(BIN)/uvicorn portal.main:app --reload --host 0.0.0.0 --port 8080
 
 docker-build:
-	@echo "Docker build is owned by WI-18 (production deployment batch)."
-	@echo "For local dev: docker compose -f docker-compose.dev.yml up (when WI-18 lands)."
+	@echo "This target is not implemented. Build the images directly:"
+	@echo "  docker compose -f docker/compose.yaml build"
+	@echo "  docker compose -f docker/compose.yaml up"
 
 clean:
 	rm -rf $(VENV) .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage

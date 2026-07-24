@@ -78,6 +78,12 @@ def _csrf_token(request: Request) -> str:
 # AMD-18 — Webhook HMAC verification
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Minimum acceptable length for the Guardian webhook shared secret. Matches the
+# 32-character floor `portal.config` enforces on `session_secret`. Anything
+# shorter (including leftover placeholder values) is treated as unconfigured and
+# rejected, because a guessable secret makes a valid signature meaningless.
+MIN_WEBHOOK_SECRET_BYTES = 32
+
 
 def _webhook_secret() -> str:
     """Pull the Guardian webhook secret from settings.
@@ -90,9 +96,12 @@ def _webhook_secret() -> str:
     dedicated field directly (PRD-19 audit-2026-05-01 Recommendation 3).
 
     DEFENSE: returns empty string if not configured — the verification will
-    then fail with bad_signature for ALL inputs (fail-closed). Operators
-    must set `WEBHOOK_GUARDIAN_SECRET` (or `webhook_guardian_secret` in
-    settings) before exposing this endpoint.
+    then fail with bad_signature for ALL inputs (fail-closed). The same
+    applies to any secret shorter than `MIN_WEBHOOK_SECRET_BYTES`, so a
+    leftover placeholder value cannot silently authenticate callers.
+    Operators must set `WEBHOOK_GUARDIAN_SECRET` (or `webhook_guardian_secret`
+    in settings) to a value of at least 32 characters before exposing this
+    endpoint.
     """
     settings = get_settings()
     secret = getattr(settings, "webhook_guardian_secret", None)
@@ -119,6 +128,13 @@ def verify_guardian_webhook(
 
     Signed material is `f"{timestamp}." + body` per AMD-18; signature header
     has the form `sha256=<hex>`.
+
+    A structurally valid signature is not sufficient: the shared secret must
+    itself meet the minimum strength bar (`MIN_WEBHOOK_SECRET_BYTES`). A short
+    or placeholder secret is rejected even when the caller's HMAC is correct,
+    because such a secret is guessable and the signature therefore proves
+    nothing about the caller's identity. This mirrors the 32-character minimum
+    already enforced on `session_secret` in `portal.config`.
     """
     # 1. Timestamp must parse to int.
     try:
@@ -135,12 +151,16 @@ def verify_guardian_webhook(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="stale_timestamp"
         )
 
-    # 3. HMAC over (timestamp + "." + body)
-    if not secret:
-        # Fail closed — empty secret cannot produce valid signature.
+    # 3. Secret strength. Fail closed on an unset or under-strength secret:
+    #    an attacker who can guess the shared secret can mint valid
+    #    signatures, so a weak secret is an authentication bypass regardless
+    #    of how correct the HMAC computation is.
+    if len(secret) < MIN_WEBHOOK_SECRET_BYTES:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="bad_signature"
         )
+
+    # 4. HMAC over (timestamp + "." + body)
     signed_material = f"{timestamp_header}.".encode() + body
     # Use hmac.HMAC explicitly (Python 3 idiomatic form) to avoid any
     # ambiguity with `hmac.new()` and to make the cryptographic primitive

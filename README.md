@@ -53,7 +53,7 @@ cp .env.example .env
 # Edit .env with your local values (see CONFIG.md for all vars)
 
 # Run tests
-make test             # 505 tests
+make test             # 556 tests
 
 # Start development server
 make run              # http://localhost:8080 (plaintext, reload enabled)
@@ -62,6 +62,25 @@ make run              # http://localhost:8080 (plaintext, reload enabled)
 Then navigate to `http://localhost:8080` in your browser.
 
 ### Local Development with Docker Compose
+
+Both nginx front-ends terminate TLS, so generate certificates first. They are
+bind-mounted from `docker/nginx/certs/`, which is gitignored — the filenames
+below are the ones `docker/nginx/internal.conf` and `docker/nginx/public.conf`
+reference, so use them exactly:
+
+```bash
+mkdir -p docker/nginx/certs && cd docker/nginx/certs
+for name in internal public; do
+  openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+    -keyout "${name}.key" -out "${name}.crt" \
+    -subj "/CN=localhost" \
+    -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+done
+chmod 600 ./*.key && cd ../../..
+```
+
+The `compliance_service` container builds from a sibling clone; see the comment
+above that service in `docker/compose.yaml` if you have not cloned it yet.
 
 ```bash
 # Run internal + public portals, Redis, and PostgreSQL
@@ -72,6 +91,9 @@ docker compose -f docker/compose.yaml up
 # Redis:            localhost:6379
 # PostgreSQL:       localhost:5432 (user: portal, db: compliance_portal)
 ```
+
+Browsers will warn about the self-signed chain; that is expected locally. For
+production certificates see [INSTALLATION.md](./docs/INSTALLATION.md).
 
 ### Production Deployment
 
@@ -103,32 +125,42 @@ src/portal/
 │   └── session.py                   Async session store (Redis or in-memory)
 │
 ├── middleware/
-│   ├── security.py                  CORS, CSP, HSTS, X-Forwarded-* parsing
+│   ├── security_headers.py          CORS, CSP, HSTS, X-Forwarded-* parsing
 │   ├── rate_limit.py                SlowAPI rate limiter
 │   ├── audit.py                     Request/response audit logging
 │   └── audit_guard.py               Runtime enforcement of REQ-CPL-039 (never write to immutable_audit_events)
 │
-├── routers/
-│   ├── health.py                    Health checks and liveness
-│   ├── audit.py                     GET /audit/* (search, download, integrity verify)
-│   ├── evidence.py                  GET /evidence/*/download with watermarking
-│   ├── gates.py                     GET/POST /gates/* (workspace, decisions, MFA)
-│   ├── auditor_admin.py             POST /admin/auditors/* (token issuance, scope)
-│   ├── dsr.py                       Internal DSR routes: GET/POST /dsr/*
-│   ├── export.py                    GET /export/* (PDF rendering, signing, SSRF-safe)
-│   ├── incidents.py                 GET/POST /incidents/* (SLA tracking, remediation)
-│   ├── model_cards.py               GET/POST /model-cards/* (sign-off, review queue)
-│   ├── reports.py                   GET/POST /reports/* (generate, sign, bundle)
-│   ├── dashboards.py                GET /dashboards/* (SLA, risk, remediation)
-│   ├── process_knowledge.py         GET/POST /knowledge/* (review queue, approve)
-│   ├── outcomes.py                  GET /outcomes/* (cost, timeline, success metrics)
-│   └── project_docs.py              GET /docs/* (read-only BRD, architecture, coverage)
-│
-└── shared/
-    └── api_client.py                Async httpx client to compliance service
-                                    • Retry + circuit breaker
-                                    • mTLS or bearer auth
-                                    • follow_redirects=False (SSRF defense)
+└── routers/
+    ├── health.py                    Health checks and liveness
+    ├── audit.py                     GET /audit/* (search, download, integrity verify)
+    ├── evidence.py                  GET /evidence/*/download with watermarking
+    ├── gates.py                     GET/POST /gates/* (workspace, decisions, MFA)
+    ├── auditor_admin.py             POST /admin/auditors/* (token issuance, scope)
+    ├── dsr.py                       Internal DSR routes: GET/POST /dsr/*
+    ├── export.py                    GET /export/* (PDF rendering, signing, SSRF-safe)
+    ├── incidents.py                 GET/POST /incidents/* (SLA tracking, remediation)
+    ├── model_cards.py               GET/POST /model-cards/* (sign-off, review queue)
+    ├── reports.py                   GET/POST /reports/* (generate, sign, bundle)
+    ├── dashboards.py                GET /dashboards/* (SLA, risk, remediation)
+    ├── process_knowledge.py         GET/POST /knowledge/* (review queue, approve)
+    ├── outcomes.py                  GET /outcomes/* (cost, timeline, success metrics)
+    └── project_docs.py              GET /docs/* (read-only BRD, architecture, coverage)
+
+src/dsr_portal/                      Public DSR portal (APP_MODE=public)
+├── main.py                          Public app factory
+├── captcha.py                       CAPTCHA verification for anonymous submission
+├── identity_state_machine.py        Identity-verification state transitions
+├── malware_scan.py                  Upload scanning for submitted proof documents
+├── auth/
+│   └── token.py                     Opaque status-tracking tokens
+└── routers/
+    └── submit.py                    POST /submit, status lookup, evidence download
+
+src/shared/
+└── api_client/                      Async httpx client to compliance service
+                                     • Retry + circuit breaker
+                                     • mTLS or bearer auth
+                                     • follow_redirects=False (SSRF defense)
 ```
 
 ### Two-Container Isolation
@@ -168,16 +200,17 @@ Public DSR Portal: **8 routes** for submission, status tracking, identity verifi
 make help            # Show all targets
 make lint            # Run ruff check + format
 make type            # Run mypy type checking
-make test            # Run pytest (all 505 tests)
+make test            # Run pytest (all 556 tests)
 make test-verbose    # pytest -v
 make run             # Start dev server with reload
-make docker-build    # Build internal + public images
+make docker-build    # Not implemented — prints a pointer. Use:
+                     #   docker compose -f docker/compose.yaml build
 make clean           # Remove venv, caches
 ```
 
 ## Testing
 
-**505 tests** across functional, integration, and security domains:
+**556 tests** across functional, integration, and security domains:
 
 ```bash
 make test                    # Run all (3.4s)
