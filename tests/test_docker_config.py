@@ -170,7 +170,7 @@ def test_public_nginx_only_on_public_net(compose: dict) -> None:
 
 
 def test_nginx_ports_bound_to_localhost(compose: dict) -> None:
-    """Both nginx services bind to 127.0.0.1 only (Netbird-style isolation)."""
+    """Both nginx services bind to 127.0.0.1 only (private-overlay isolation)."""
     for svc_name, expected_port in (
         ("portal_nginx", "8443"),
         ("public_nginx", "8444"),

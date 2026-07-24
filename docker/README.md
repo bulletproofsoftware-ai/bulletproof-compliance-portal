@@ -10,7 +10,7 @@ proxies on TWO non-bridged Docker networks.
                                    Host
        ┌────────────────────────────────────────────────────────────┐
        │                                                            │
-       │   127.0.0.1:8443 ────►  portal_nginx  (TLS, Netbird-side)  │
+       │   127.0.0.1:8443 ────►  portal_nginx  (TLS, overlay-side)  │
        │                              │                             │
        │                              │ internal-mgmt (internal)    │
        │                              ▼                             │
@@ -310,7 +310,7 @@ syft compliance-portal-internal:latest -o cyclonedx-json > sbom-internal.cdx.jso
 - [ ] Encryption at rest verified (LUKS / FileVault / cloud)
 - [ ] Real secrets in `docker/secrets/` (NOT `secrets.example/`)
 - [ ] TLS certs valid and not self-signed
-- [ ] Internal portal placed behind Netbird / Tailscale (no direct internet exposure on 8443)
+- [ ] Internal portal placed behind a private overlay network / VPN (no direct internet exposure on 8443)
 - [ ] Public portal fronted by an additional WAF (Cloudflare / AWS WAF) in production
 - [ ] Centralized log forwarding active (Wazuh / Filebeat / Loki)
 - [ ] SBOM generated and attached to image (see `SBOM.md`)

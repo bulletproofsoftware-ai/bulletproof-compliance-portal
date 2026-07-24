@@ -16,7 +16,7 @@ This document answers the most common questions about the Compliance Portal.
 
 The internal portal (port 8443) and public DSR portal (port 8444) are intentionally separated for several critical reasons:
 
-**Security isolation**: The internal portal contains sensitive audit data, decision controls, and compliance metrics that must never be accessible to unauthenticated users. By running as a separate container, the internal portal can be deployed on a private network (Netbird VPN) with strict firewall rules, while the public DSR portal is exposed to the internet behind a WAF.
+**Security isolation**: The internal portal contains sensitive audit data, decision controls, and compliance metrics that must never be accessible to unauthenticated users. By running as a separate container, the internal portal can be deployed on a private overlay network / VPN with strict firewall rules, while the public DSR portal is exposed to the internet behind a WAF.
 
 **Failure isolation**: If the public portal experiences a DDoS attack or resource exhaustion, the internal portal remains unaffected. Each container has its own resource limits (CPU, memory, file descriptors) configured independently.
 

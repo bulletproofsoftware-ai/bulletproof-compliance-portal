@@ -2,6 +2,8 @@
 
 A FastAPI-based compliance and governance portal for managing DSR (Data Subject Request) workflows, audit trails, evidence packages, gate decisions, incident management, and regulatory reporting. Designed for compliance officers, external auditors, data subjects, and domain experts with role-based access control and comprehensive audit logging.
 
+> 📚 Full documentation in [`docs/`](docs/) · 🔒 security scan in [`docs/scan/scan-report.md`](docs/scan/scan-report.md). (System-overview media coming soon.)
+
 ## What This Does
 
 The Compliance Portal provides three distinct interfaces for three distinct user populations:
@@ -77,7 +79,7 @@ See **[INSTALLATION.md](./docs/INSTALLATION.md)** for:
 - Server prerequisites and sizing
 - Docker Compose production configuration
 - Encryption-at-rest setup
-- Netbird configuration (internal portal isolation)
+- Private overlay network setup (internal portal isolation)
 - WAF configuration (public portal rate limiting)
 - mTLS bootstrap with compliance service
 - Log aggregation and forwarding
@@ -212,6 +214,12 @@ See **[SECURITY.md](./SECURITY.md)** for vulnerability disclosure policy and sec
 ## Documentation
 
 - **[README.md](./README.md)** — This file
+- **[OVERVIEW.md](./docs/OVERVIEW.md)** — What the portal is, the three surfaces, capabilities, and route map
+- **[INSTALL.md](./docs/INSTALL.md)** — Quick install & run (local + Docker Compose)
+- **[HOW-TO-USE.md](./docs/HOW-TO-USE.md)** — Task-oriented walkthroughs by role
+- **[ADMINISTRATOR.md](./docs/ADMINISTRATOR.md)** — Day-2 operations: auth, secrets, isolation, provisioning
+- **[SBOM.md](./docs/SBOM.md)** — Software bill of materials (real, generated from manifests)
+- **[scan/scan-report.md](./docs/scan/scan-report.md)** — Latest security scan (0 critical / 0 high)
 - **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — Component design, data flows, trust boundaries, threat model
 - **[SETUP.md](./docs/SETUP.md)** — Development setup, dependency installation, environment variables
 - **[INSTALLATION.md](./docs/INSTALLATION.md)** — Production deployment, Docker Compose, TLS bootstrap, log forwarding
@@ -222,8 +230,8 @@ See **[SECURITY.md](./SECURITY.md)** for vulnerability disclosure policy and sec
 - **[CHANGELOG.md](./CHANGELOG.md)** — Version history
 - **[INCIDENT-RESPONSE.md](./docs/INCIDENT-RESPONSE.md)** — Security incident handling, SLA tracking, remediation
 - **[CHANGE-MANAGEMENT.md](./docs/CHANGE-MANAGEMENT.md)** — Code review, deployment gates, rollback
-- **[SUPPORT-POLICY.md](./docs/SUPPORT-POLICY.md)** — Support tiers, SLA, escalation
-- **[SECURITY-EOL.md](./docs/SECURITY-EOL.md)** — Version support lifecycle
+- **[SUPPORT-POLICY.md](./SUPPORT-POLICY.md)** — Support tiers, SLA, escalation
+- **[SECURITY-EOL.md](./SECURITY-EOL.md)** — Version support lifecycle
 
 ## License
 

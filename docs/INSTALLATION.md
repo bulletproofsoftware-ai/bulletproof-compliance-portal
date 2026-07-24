@@ -108,32 +108,26 @@ aws ec2 run-instances \
   --instance-type t3.xlarge
 ```
 
-## Step 4: Netbird Configuration (Internal Portal Isolation)
+## Step 4: Private Overlay Network (Internal Portal Isolation)
 
-### Install Netbird Client
+The internal portal must not be reachable from the public internet. Place it on
+a private or overlay network — WireGuard, Tailscale, a cloud VPC/private
+subnet, or an equivalent — so that only authenticated peers (compliance officers
+and auditors) can reach port 8443. The steps below are generic; adapt them to
+your chosen overlay provider.
 
-```bash
-# Ubuntu/Debian
-curl -L https://pkgs.netbird.io/install.sh | bash
-
-# Verify installation
-sudo netbird status
-```
-
-### Register Portal Server
+### Install and join the overlay
 
 ```bash
-# On compliance portal server
-sudo netbird up
-
-# Authorize on Netbird dashboard
-# Return to server and verify peer list
-sudo netbird peers list
+# Install your overlay-network client on the portal server, then bring the
+# interface up and register the host with your control plane.
+# Verify the host has joined and can see its peers.
 ```
 
-### Configure Firewall Rules
+### Restrict access with a peer policy
 
-In Netbird dashboard, create access policy:
+Create an access policy on your overlay's control plane that allows only the
+authorised peer groups to reach the internal portal:
 
 ```yaml
 Name: "Compliance Portal Internal"
@@ -141,7 +135,7 @@ Rules:
   - Source Group: compliance-officers
     Destination Group: compliance-portal-internal
     Ports: 8443/tcp
-    
+
   - Source Group: auditors
     Destination Group: compliance-portal-internal
     Ports: 8443/tcp
