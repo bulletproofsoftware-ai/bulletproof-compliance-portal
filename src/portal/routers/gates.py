@@ -41,6 +41,7 @@ PRD-18 documents and audits the `triggered_by` ingress path.
 
 from __future__ import annotations
 
+import contextlib
 from datetime import UTC, datetime
 from typing import Any
 
@@ -270,7 +271,7 @@ async def gate_decide(
         if not ok:
             # The nonce was either: never issued, expired (>60s), bound to a
             # different user/gate, or already consumed (replay).
-            try:
+            with contextlib.suppress(Exception):  # best-effort audit
                 await client.record_audit_event(
                     audit_type="auth.mfa_nonce_rejected",
                     user_id=user.sub,
@@ -282,8 +283,6 @@ async def gate_decide(
                         ),
                     },
                 )
-            except Exception:  # noqa: BLE001
-                pass
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="mfa_nonce_invalid_or_expired",

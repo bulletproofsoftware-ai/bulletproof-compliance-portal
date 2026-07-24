@@ -268,9 +268,7 @@ class MfaNonceManager:
         issued_at = payload.get("issued_at")
         if not isinstance(issued_at, (int, float)):
             return False
-        if time.time() - issued_at > self.max_age_s:
-            return False
-        return True
+        return time.time() - issued_at <= self.max_age_s
 
     @staticmethod
     def fingerprint(token: str) -> str:

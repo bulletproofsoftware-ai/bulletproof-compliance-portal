@@ -262,26 +262,29 @@ async def dsr_transition(
             detail=f"invalid transition: {dsr.status} → {to_status}",
         )
 
-    # AMD-01 — SoD pre-check on identity-verification action.
-    if to_status in {"verified", "identity_insufficient", "identity_rejected"}:
-        if dsr.submitted_by and dsr.submitted_by == user.sub:
-            try:
-                await client.record_audit_event(
-                    audit_type="dsr.identity_review.sod_blocked",
-                    user_id=user.sub,
-                    classification="confidential",
-                    payload={
-                        "request_id": req_id,
-                        "submitted_by": dsr.submitted_by,
-                        "attempted_to_status": to_status,
-                    },
-                )
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("dsr.sod_audit_failed", error=str(exc))
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="SoD violation: cannot identity-verify a DSR you submitted",
+    # Separation-of-duties pre-check on identity-verification action.
+    if (
+        to_status in {"verified", "identity_insufficient", "identity_rejected"}
+        and dsr.submitted_by
+        and dsr.submitted_by == user.sub
+    ):
+        try:
+            await client.record_audit_event(
+                audit_type="dsr.identity_review.sod_blocked",
+                user_id=user.sub,
+                classification="confidential",
+                payload={
+                    "request_id": req_id,
+                    "submitted_by": dsr.submitted_by,
+                    "attempted_to_status": to_status,
+                },
             )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("dsr.sod_audit_failed", error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="SoD violation: cannot identity-verify a DSR you submitted",
+        )
 
     # Required-field gate.
     if to_status == "rejected" and not rejection_reason:

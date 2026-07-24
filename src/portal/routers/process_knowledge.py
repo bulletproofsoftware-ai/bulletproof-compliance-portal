@@ -292,7 +292,7 @@ async def candidate_modify(
 )
 async def candidate_batch(
     request: Request,
-    candidate_ids: str = Form(...),  # comma-separated
+    candidate_ids: str = Form(default=""),  # comma-separated
     action: str = Form(...),
     rationale: str = Form(...),
     user: User = Depends(require_any_role(*_ALLOWED)),
@@ -300,6 +300,10 @@ async def candidate_batch(
     templates: Jinja2Templates = Depends(_templates_dep),
 ) -> HTMLResponse:
     """REQ-CPL-030 — batch approve/reject."""
+    # An empty candidate_ids field must reach this handler so it returns the
+    # documented 400 ("no candidate_ids provided") rather than a framework 422.
+    # Starlette >= 1.0 rejects empty values for required Form fields before the
+    # handler body runs, so the empty-string case is normalised below.
     if action not in {"approve", "reject"}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

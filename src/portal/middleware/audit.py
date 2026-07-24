@@ -40,7 +40,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
         self._forward = forward_to_compliance
 
     def _is_excluded(self, path: str) -> bool:
-        return any(path == e or path.startswith(e + "/") or path == e for e in self._excluded)
+        return any(path == e or path.startswith(e + "/") for e in self._excluded)
 
     async def dispatch(self, request: Request, call_next):  # type: ignore[no-untyped-def]
         if self._is_excluded(request.url.path):

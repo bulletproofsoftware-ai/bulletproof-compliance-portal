@@ -133,13 +133,16 @@ async def export_pdf(
 
     # Auditor-only components reject viewer/sme even if listed in allowed_roles
     # (defense in depth)
-    if spec.auditor_only_components and not user.has_role(Role.AUDITOR):
-        # Allow admins and compliance_officers to still pull these (oversight)
-        if not user.has_any_role(Role.ADMIN, Role.COMPLIANCE_OFFICER):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"component {component!r} reserved for auditor role",
-            )
+    # Allow admins and compliance_officers to still pull these (oversight)
+    if (
+        spec.auditor_only_components
+        and not user.has_role(Role.AUDITOR)
+        and not user.has_any_role(Role.ADMIN, Role.COMPLIANCE_OFFICER)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"component {component!r} reserved for auditor role",
+        )
 
     # ── Resolver — RBAC + data load ────────────────────────────────────────
     from shared.api_client.exceptions import NotFoundError as _ClientNotFound

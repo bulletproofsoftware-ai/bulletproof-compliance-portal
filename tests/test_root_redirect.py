@@ -25,7 +25,21 @@ async def test_authenticated_root_redirects_to_home():
 
 def test_home_router_mounted():
     app = create_app(mode="internal")
-    paths = {route.path for route in app.routes}
+    # FastAPI >= 0.135 represents included routers as lazy `_IncludedRouter`
+    # wrappers that expose the real APIRouter via `.original_router` instead of
+    # flattening `.path` onto `app.routes`. Collect concrete paths from both.
+    paths: set[str] = set()
+    for route in app.routes:
+        included = getattr(route, "original_router", None)
+        if included is not None:
+            for sub in getattr(included, "routes", []) or []:
+                sub_path = getattr(sub, "path", None)
+                if sub_path is not None:
+                    paths.add(sub_path)
+        else:
+            path = getattr(route, "path", None)
+            if path is not None:
+                paths.add(path)
     assert "/home" in paths
 
 

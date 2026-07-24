@@ -30,6 +30,7 @@ auto-merged into upstream queries by the WI-03 client.
 
 from __future__ import annotations
 
+import contextlib
 import json
 from datetime import UTC, datetime
 from typing import Any, AsyncIterator
@@ -342,7 +343,7 @@ async def audit_export_jsonl(
                     "audit.export.completed_audit_failed", error=str(exc)
                 )
         except Exception as exc:  # noqa: BLE001
-            try:
+            with contextlib.suppress(Exception):  # best-effort audit
                 await client.record_audit_event(
                     audit_type="audit.export.aborted",
                     user_id=user.sub,
@@ -353,8 +354,6 @@ async def audit_export_jsonl(
                         "filters": base_filters,
                     },
                 )
-            except Exception:  # noqa: BLE001
-                pass
             raise
 
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")

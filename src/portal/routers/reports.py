@@ -30,6 +30,7 @@ AMD-08 — for PDF exports of signed reports, WI-19's `pdf_export(...)` does
 
 from __future__ import annotations
 
+import contextlib
 from typing import Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
@@ -317,15 +318,13 @@ async def reports_approve(
         )
     # SoD pre-check (REQ-CPL-026): reviewer != creator. Service is authoritative.
     if report.created_by and report.created_by == user.sub:
-        try:
+        with contextlib.suppress(Exception):  # best-effort audit
             await client.record_audit_event(
                 audit_type="report.approve.sod_blocked",
                 user_id=user.sub,
                 classification="confidential",
                 payload={"report_id": report_id, "creator": report.created_by},
             )
-        except Exception:  # noqa: BLE001
-            pass
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="SoD: cannot approve a report you authored",
@@ -370,7 +369,7 @@ async def reports_sign(
     mgr = _nonce_manager(request)
     ok = mgr.consume(decision_nonce, user_sub=user.sub, action=_sign_action(report_id))
     if not ok:
-        try:
+        with contextlib.suppress(Exception):  # best-effort audit
             await client.record_audit_event(
                 audit_type="auth.mfa_nonce_rejected",
                 user_id=user.sub,
@@ -380,8 +379,6 @@ async def reports_sign(
                     "nonce_fingerprint": MfaNonceManager.fingerprint(decision_nonce),
                 },
             )
-        except Exception:  # noqa: BLE001
-            pass
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="mfa_nonce_consumed"
         )

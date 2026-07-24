@@ -16,6 +16,7 @@ Routes (mounted at /models):
 
 from __future__ import annotations
 
+import contextlib
 from typing import Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
@@ -281,7 +282,7 @@ async def model_review_signoff(
         decision_nonce, user_sub=user.sub, action=_signoff_action(review_id)
     )
     if not ok:
-        try:
+        with contextlib.suppress(Exception):  # best-effort audit
             await client.record_audit_event(
                 audit_type="auth.mfa_nonce_rejected",
                 user_id=user.sub,
@@ -292,8 +293,6 @@ async def model_review_signoff(
                     "nonce_fingerprint": MfaNonceManager.fingerprint(decision_nonce),
                 },
             )
-        except Exception:  # noqa: BLE001
-            pass
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="mfa_nonce_consumed"
         )
