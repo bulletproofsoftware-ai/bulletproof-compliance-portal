@@ -2,8 +2,6 @@
 
 A FastAPI-based compliance and governance portal for managing DSR (Data Subject Request) workflows, audit trails, evidence packages, gate decisions, incident management, and regulatory reporting. Designed for compliance officers, external auditors, data subjects, and domain experts with role-based access control and comprehensive audit logging.
 
-**Project**: PRD-19 | **Status**: Production-Ready (505 tests passing, 26 CISO amendments applied)
-
 ## What This Does
 
 The Compliance Portal provides three distinct interfaces for three distinct user populations:
@@ -14,21 +12,21 @@ The Compliance Portal provides three distinct interfaces for three distinct user
 
 3. **Auditor Access**: Time-limited, scoped download of evidence packages, audit chains, gate records, and model cards with cryptographic integrity verification.
 
-It surfaces the compliance service (PRD-18) to humans who aren't operators. Compliance officers can approve gate decisions with evidence review, triage DSRs within GDPR's 30-day window, manage security incidents against NY DFS's 72-hour notification clock, and sign off on annual model reviews.
+It surfaces the compliance service to humans who aren't operators. Compliance officers can approve gate decisions with evidence review, triage DSRs within GDPR's 30-day window, manage security incidents against NY DFS's 72-hour notification clock, and sign off on annual model reviews.
 
 ## Features
 
-- **DSR Management**: Submission, identity verification (AMD-01), status tracking, and evidence delivery per GDPR Articles 15–22
-- **Gate Decision Workspace**: Evidence review, stakeholder notification, MFA step-up per decision (AMD-03), SoD enforcement
-- **Audit Explorer**: Search, filter, and download audit trails with integrity verification (AMD-07)
-- **Evidence Package Library**: Watermarked PDF delivery (AMD-08) with auditor identity embedded (AMD-06)
+- **DSR Management**: Submission, identity verification, status tracking, and evidence delivery per GDPR Articles 15–22
+- **Gate Decision Workspace**: Evidence review, stakeholder notification, MFA step-up per decision, SoD enforcement
+- **Audit Explorer**: Search, filter, and download audit trails with integrity verification
+- **Evidence Package Library**: Watermarked PDF delivery with auditor identity embedded
 - **Auditor Access Controls**: Time-limited tokens, scope enforcement, separate admin portal
 - **Incident Console**: SLA tracking (NY DFS 72-hour), audit emission, remediation workflows
 - **Model Card Registry**: Annual sign-off tracking, domain expert review queues
-- **Regulatory Report Generation**: Ed25519-signed delivery bundles (AMD-04) with JWKS anchors
+- **Regulatory Report Generation**: Ed25519-signed delivery bundles with JWKS anchors
 - **Compliance Dashboards**: SLA compliance, remediation progress, risk heatmaps
 - **Process Knowledge Verification**: Domain expert review queue for extracted knowledge
-- **PDF Export Service**: Safe URL rendering (AMD-02), watermarking, cryptographic signatures
+- **PDF Export Service**: Safe URL rendering, watermarking, cryptographic signatures
 - **Project Documentation Portal**: Read-only BRD/architecture/test coverage/cost reporting
 - **Security Hardening**: CORS, CSP, HSTS, rate limiting, audit guards (REQ-CPL-039), behavioral hooks
 
@@ -59,13 +57,13 @@ make test             # 505 tests
 make run              # http://localhost:8080 (plaintext, reload enabled)
 ```
 
-Then navigate to `https://localhost:8443` in your browser (certificate verification not required for local dev).
+Then navigate to `http://localhost:8080` in your browser.
 
 ### Local Development with Docker Compose
 
 ```bash
 # Run internal + public portals, Redis, and PostgreSQL
-docker compose -f docker-compose.dev.yml up
+docker compose -f docker/compose.yaml up
 
 # Internal portal:  https://localhost:8443
 # Public DSR:       https://localhost:8444
@@ -78,7 +76,7 @@ docker compose -f docker-compose.dev.yml up
 See **[INSTALLATION.md](./docs/INSTALLATION.md)** for:
 - Server prerequisites and sizing
 - Docker Compose production configuration
-- Encryption-at-rest setup (AMD-09)
+- Encryption-at-rest setup
 - Netbird configuration (internal portal isolation)
 - WAF configuration (public portal rate limiting)
 - mTLS bootstrap with compliance service
@@ -94,40 +92,40 @@ src/portal/
 ├── main.py                          Internal portal (FastAPI factory)
 ├── public_app.py                    Public DSR portal (separate app)
 ├── config.py                        Pydantic settings, per-APP_MODE
-├── logging.py                       Structlog with PII redaction (AMD-17)
+├── logging.py                       Structlog with PII redaction
 │
 ├── auth/
-│   ├── oidc.py                      OIDC + session management (AMD-15)
+│   ├── oidc.py                      OIDC + session management
 │   ├── rbac.py                      5 roles: admin, officer, auditor, sme, viewer
-│   ├── mfa.py                       MFA step-up with nonce binding (AMD-03)
+│   ├── mfa.py                       MFA step-up with nonce binding
 │   └── session.py                   Async session store (Redis or in-memory)
 │
 ├── middleware/
-│   ├── security.py                  CORS, CSP, HSTS, X-Forwarded-* parsing (WI-17)
-│   ├── rate_limit.py                SlowAPI rate limiter (WI-17)
-│   ├── audit.py                     Request/response audit logging (WI-17)
+│   ├── security.py                  CORS, CSP, HSTS, X-Forwarded-* parsing
+│   ├── rate_limit.py                SlowAPI rate limiter
+│   ├── audit.py                     Request/response audit logging
 │   └── audit_guard.py               Runtime enforcement of REQ-CPL-039 (never write to immutable_audit_events)
 │
 ├── routers/
 │   ├── health.py                    Health checks and liveness
-│   ├── audit.py                     GET /audit/* (search, download, integrity verify — WI-04)
-│   ├── evidence.py                  GET /evidence/*/download with watermarking (WI-05)
-│   ├── gates.py                     GET/POST /gates/* (workspace, decisions, MFA — WI-06)
-│   ├── auditor_admin.py             POST /admin/auditors/* (token issuance, scope — WI-07)
-│   ├── dsr.py                       Internal DSR routes: GET/POST /dsr/* (WI-08)
-│   ├── export.py                    GET /export/* (PDF rendering, signing, SSRF-safe — WI-19)
-│   ├── incidents.py                 GET/POST /incidents/* (SLA tracking, remediation — WI-10)
-│   ├── model_cards.py               GET/POST /model-cards/* (sign-off, review queue — WI-11)
-│   ├── reports.py                   GET/POST /reports/* (generate, sign, bundle — WI-12)
-│   ├── dashboards.py                GET /dashboards/* (SLA, risk, remediation — WI-13)
-│   ├── process_knowledge.py         GET/POST /knowledge/* (review queue, approve — WI-14)
-│   ├── outcomes.py                  GET /outcomes/* (cost, timeline, success metrics — WI-15)
-│   └── project_docs.py              GET /docs/* (read-only BRD, architecture, coverage — WI-16)
+│   ├── audit.py                     GET /audit/* (search, download, integrity verify)
+│   ├── evidence.py                  GET /evidence/*/download with watermarking
+│   ├── gates.py                     GET/POST /gates/* (workspace, decisions, MFA)
+│   ├── auditor_admin.py             POST /admin/auditors/* (token issuance, scope)
+│   ├── dsr.py                       Internal DSR routes: GET/POST /dsr/*
+│   ├── export.py                    GET /export/* (PDF rendering, signing, SSRF-safe)
+│   ├── incidents.py                 GET/POST /incidents/* (SLA tracking, remediation)
+│   ├── model_cards.py               GET/POST /model-cards/* (sign-off, review queue)
+│   ├── reports.py                   GET/POST /reports/* (generate, sign, bundle)
+│   ├── dashboards.py                GET /dashboards/* (SLA, risk, remediation)
+│   ├── process_knowledge.py         GET/POST /knowledge/* (review queue, approve)
+│   ├── outcomes.py                  GET /outcomes/* (cost, timeline, success metrics)
+│   └── project_docs.py              GET /docs/* (read-only BRD, architecture, coverage)
 │
 └── shared/
     └── api_client.py                Async httpx client to compliance service
                                     • Retry + circuit breaker
-                                    • mTLS or bearer auth (AMD-10)
+                                    • mTLS or bearer auth
                                     • follow_redirects=False (AMD-25 SSRF defense)
 ```
 
@@ -147,18 +145,18 @@ Both share: database, Redis session store, compliance service client, logging pi
 | Router | Routes | Purpose |
 |--------|--------|---------|
 | `health` | 2 | Liveness, readiness |
-| `audit` | 8 | Search, filter, download audit trails; verify hashes (WI-04) |
-| `evidence` | 6 | Download evidence packages, watermarked PDFs (WI-05) |
-| `gates` | 12 | View pending decisions, submit decisions, MFA step-up (WI-06) |
-| `auditor_admin` | 7 | Create/revoke auditor tokens, set scope (WI-07) |
-| `dsr` | 9 | View submitted requests, assign to reviewer, update status (WI-08) |
-| `incidents` | 6 | Create, assign, track SLA, record remediation (WI-10) |
-| `model_cards` | 7 | View models, download cards, record sign-off (WI-11) |
-| `reports` | 6 | Generate report, sign, download, verify bundle (WI-12) |
-| `dashboards` | 5 | SLA compliance heatmap, risk dashboard, remediation pipeline (WI-13) |
-| `process_knowledge` | 5 | List candidates, approve/reject/modify, record decision (WI-14) |
-| `outcomes` | 4 | View cost, timeline, success metrics, KPI dashboards (WI-15) |
-| `project_docs` | 6 | Read-only BRD, architecture, test coverage, cost summary (WI-16) |
+| `audit` | 8 | Search, filter, download audit trails; verify hashes |
+| `evidence` | 6 | Download evidence packages, watermarked PDFs |
+| `gates` | 12 | View pending decisions, submit decisions, MFA step-up |
+| `auditor_admin` | 7 | Create/revoke auditor tokens, set scope |
+| `dsr` | 9 | View submitted requests, assign to reviewer, update status |
+| `incidents` | 6 | Create, assign, track SLA, record remediation |
+| `model_cards` | 7 | View models, download cards, record sign-off |
+| `reports` | 6 | Generate report, sign, download, verify bundle |
+| `dashboards` | 5 | SLA compliance heatmap, risk dashboard, remediation pipeline |
+| `process_knowledge` | 5 | List candidates, approve/reject/modify, record decision |
+| `outcomes` | 4 | View cost, timeline, success metrics, KPI dashboards |
+| `project_docs` | 6 | Read-only BRD, architecture, test coverage, cost summary |
 
 Public DSR Portal: **8 routes** for submission, status tracking, identity verification, and evidence download.
 
@@ -171,7 +169,7 @@ make type            # Run mypy type checking
 make test            # Run pytest (all 505 tests)
 make test-verbose    # pytest -v
 make run             # Start dev server with reload
-make docker-build    # Build internal + public images (WI-18)
+make docker-build    # Build internal + public images
 make clean           # Remove venv, caches
 ```
 
@@ -191,7 +189,7 @@ pytest tests/test_pdf.py     # PDF rendering (SSRF safety, watermarking, signatu
 
 Test suite covers:
 - **Functional**: All CRUD operations, state transitions, SLA tracking
-- **Security**: OIDC callback validation, MFA nonce binding (AMD-03), PDF SSRF (AMD-02), audit immutability (REQ-CPL-039)
+- **Security**: OIDC callback validation, MFA nonce binding, PDF SSRF, audit immutability (REQ-CPL-039)
 - **Integration**: Compliance service client, Redis session store, PostgreSQL views
 - **Adversarial**: Role bypass attempts, SoD violations, privilege escalation
 
@@ -220,8 +218,8 @@ See **[SECURITY.md](./SECURITY.md)** for vulnerability disclosure policy and sec
 - **[API.md](./docs/API.md)** — All 81 internal + 8 public routes with method, path, role, description
 - **[CONFIG.md](./docs/CONFIG.md)** — Environment variable reference, feature flags, per-environment values
 - **[FAQ.md](./docs/FAQ.md)** — Top 15 questions (two containers, role differences, PDF watermarking, etc.)
-- **[CONTRIBUTING.md](./docs/CONTRIBUTING.md)** — Development workflow, code standards, PR process
-- **[CHANGELOG.md](./docs/CHANGELOG.md)** — Version history
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** — Development workflow, code standards, PR process
+- **[CHANGELOG.md](./CHANGELOG.md)** — Version history
 - **[INCIDENT-RESPONSE.md](./docs/INCIDENT-RESPONSE.md)** — Security incident handling, SLA tracking, remediation
 - **[CHANGE-MANAGEMENT.md](./docs/CHANGE-MANAGEMENT.md)** — Code review, deployment gates, rollback
 - **[SUPPORT-POLICY.md](./docs/SUPPORT-POLICY.md)** — Support tiers, SLA, escalation
@@ -229,36 +227,26 @@ See **[SECURITY.md](./SECURITY.md)** for vulnerability disclosure policy and sec
 
 ## License
 
-Proprietary. All rights reserved.
+Apache-2.0 — see [LICENSE](LICENSE).
 
 ## Contributing
 
-See **[CONTRIBUTING.md](./docs/CONTRIBUTING.md)**.
+See **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
 
-## Project Specs
+## Features
 
-All 19 work items (WI-01 through WI-19) from PRD-19 are implemented:
+The portal implements a complete compliance-officer workflow:
 
-| WI | Name | Status |
-|----|------|--------|
-| WI-01 | Project skeleton | Implemented |
-| WI-02 | Auth & RBAC | Implemented |
-| WI-03 | Compliance API client | Implemented |
-| WI-04 | Audit Explorer | Implemented |
-| WI-05 | Evidence Package Library | Implemented |
-| WI-06 | Gate Decision Workspace | Implemented |
-| WI-07 | Auditor Access Controls | Implemented |
-| WI-08 | DSR Management | Implemented |
-| WI-09 | Public DSR Portal | Implemented |
-| WI-10 | Incident Console | Implemented |
-| WI-11 | Model Card Registry | Implemented |
-| WI-12 | Regulatory Report Generation | Implemented |
-| WI-13 | Compliance Dashboards | Implemented |
-| WI-14 | Process Knowledge Verification | Implemented |
-| WI-15 | Outcome Economics Views | Implemented |
-| WI-16 | Project Documentation Portal | Implemented |
-| WI-17 | Security Hardening | Implemented |
-| WI-18 | Docker Deployment | Implemented |
-| WI-19 | PDF Export Service | Implemented |
+- **Auth & RBAC** — role-based access for compliance officers, auditors, and SMEs.
+- **Compliance API client** — talks to the compliance service (JWKS-verified signing).
+- **Audit explorer** — browse and verify the tamper-evident audit chain.
+- **Evidence package library** — assemble and export evidence bundles.
+- **Gate decision workspace** — review and record gate decisions.
+- **Auditor access controls** — scoped, time-boxed auditor provisioning.
+- **DSR management** + **public DSR portal** — intake and cascade Data Subject Requests.
+- **Incident console** — track and respond to incidents.
+- **Model card registry** — govern deployed model cards.
+- **Regulatory report generation** and **compliance dashboards**.
+- **PDF export service** — SSRF-safe rendering + signing of reports.
 
-See **[docs/completeness-report-2026-04-27.md](./docs/completeness-report-2026-04-27.md)** for detailed verification.
+See [`docs/`](docs/) for the API reference, architecture, configuration, and setup guides.
