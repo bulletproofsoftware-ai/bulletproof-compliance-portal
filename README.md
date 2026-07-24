@@ -126,7 +126,7 @@ src/portal/
     └── api_client.py                Async httpx client to compliance service
                                     • Retry + circuit breaker
                                     • mTLS or bearer auth
-                                    • follow_redirects=False (AMD-25 SSRF defense)
+                                    • follow_redirects=False (SSRF defense)
 ```
 
 ### Two-Container Isolation
@@ -197,16 +197,16 @@ Test suite covers:
 
 See **[SECURITY.md](./SECURITY.md)** for vulnerability disclosure policy and security contact.
 
-**Key invariants** (26 CISO amendments applied 2026-04-27):
+**Key security controls**:
 
-- **AMD-01**: Public DSR identity verification with document validation, name/DOB matching, expiration checking
-- **AMD-02**: Safe URL rendering in PDF exports; SSRF blocking on non-`file://` schemes
-- **AMD-03**: MFA step-up per decision with nonce binding (max 60s lifetime, consumed after use)
-- **AMD-04**: Ed25519-signed regulatory reports with JWKS anchors and key rotation policy
-- **AMD-10**: mTLS *or* IP allowlist (never bearer token alone) for portal→service hop
-- **AMD-15**: Session ID rotation on OIDC callback (defeat session fixation)
-- **AMD-17**: PII redaction (`subject_email`, `subject_name`, `subject_phone`, `subject_address`, `dob`) in logs at any nesting depth
-- **AMD-25**: `httpx.AsyncClient` with `follow_redirects=False` (block SSRF amplification)
+- Public DSR identity verification with document validation, name/DOB matching, expiration checking
+- Safe URL rendering in PDF exports; SSRF blocking on non-`file://` schemes
+- MFA step-up per decision with nonce binding (max 60s lifetime, consumed after use)
+- Ed25519-signed regulatory reports with JWKS anchors and key rotation policy
+- mTLS *or* IP allowlist (never bearer token alone) for portal→service hop
+- Session ID rotation on OIDC callback (defeat session fixation)
+- PII redaction (`subject_email`, `subject_name`, `subject_phone`, `subject_address`, `dob`) in logs at any nesting depth
+- `httpx.AsyncClient` with `follow_redirects=False` (block SSRF amplification)
 - **REQ-CPL-039**: Static + runtime guards: no code path writes to `immutable_audit_events`
 
 ## Documentation
