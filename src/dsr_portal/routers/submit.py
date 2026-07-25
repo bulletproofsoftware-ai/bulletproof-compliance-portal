@@ -271,7 +271,19 @@ async def public_status_check(
     captcha_token: str = Form(default=""),
     templates: Jinja2Templates = Depends(_templates_dep),
     client: ComplianceClient = Depends(_get_compliance_client),
+    public_token: PublicToken = Depends(
+        require_capability(TokenCapability.STATUS_CHECK)
+    ),
 ) -> HTMLResponse:
+    """Look up the status of a submitted DSR.
+
+    AMD-05 capability ACL is enforced via
+    ``require_capability(TokenCapability.STATUS_CHECK)``, matching the
+    IDENTITY_UPLOAD and RECEIPT_DOWNLOAD routes. The token is issued at
+    submission time alongside those two. Previously this route documented the
+    STATUS_CHECK capability but never enforced it, so CAPTCHA plus
+    (reference, email) were the only gate on someone else's request status.
+    """
     settings = request.app.state.settings_summary
 
     captcha_result = await verify_captcha(

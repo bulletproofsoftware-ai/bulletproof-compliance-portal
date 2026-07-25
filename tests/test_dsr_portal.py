@@ -352,8 +352,9 @@ class TestSubmission:
 
 
 class TestStatusCheck:
-    def test_status_404_does_not_distinguish(self):
-        app, fake = _build_app_with_fake()
+    def test_status_requires_status_check_token(self):
+        """AMD-05: the route enforces the STATUS_CHECK capability."""
+        app, _ = _build_app_with_fake()
         app.state.settings_summary = {
             "captcha_provider": "none",
             "captcha_secret": "",
@@ -363,9 +364,33 @@ class TestStatusCheck:
             r = c.post(
                 "/dsr/status",
                 data={
+                    "reference": "DSR-PUB-1",
+                    "email": "alice@example.com",
+                    "captcha_token": "any",
+                },
+            )
+        assert r.status_code == 401
+
+    def test_status_404_does_not_distinguish(self):
+        app, fake = _build_app_with_fake()
+        app.state.settings_summary = {
+            "captcha_provider": "none",
+            "captcha_secret": "",
+            "app_env": "test",
+        }
+        token = app.state.public_token_mgr.issue(
+            reference="DSR-PUB-9999",
+            email="wrong@example.com",
+            capability=TokenCapability.STATUS_CHECK,
+        )
+        with TestClient(app) as c:
+            r = c.post(
+                "/dsr/status",
+                data={
                     "reference": "DSR-PUB-9999",
                     "email": "wrong@example.com",
                     "captcha_token": "any",
+                    "token": token,
                 },
             )
         assert r.status_code == 404
@@ -390,6 +415,11 @@ class TestStatusCheck:
             "captcha_secret": "",
             "app_env": "test",
         }
+        token = app.state.public_token_mgr.issue(
+            reference="DSR-PUB-1",
+            email="alice@example.com",
+            capability=TokenCapability.STATUS_CHECK,
+        )
         with TestClient(app) as c:
             r = c.post(
                 "/dsr/status",
@@ -397,6 +427,7 @@ class TestStatusCheck:
                     "reference": "DSR-PUB-1",
                     "email": "alice@example.com",
                     "captcha_token": "any",
+                    "token": token,
                 },
             )
         assert r.status_code == 200
