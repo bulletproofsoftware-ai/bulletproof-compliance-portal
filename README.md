@@ -2,7 +2,9 @@
 
 A FastAPI-based compliance and governance portal for managing DSR (Data Subject Request) workflows, audit trails, evidence packages, gate decisions, incident management, and regulatory reporting. Designed for compliance officers, external auditors, data subjects, and domain experts with role-based access control and comprehensive audit logging.
 
-> 📚 Full documentation in [`docs/`](docs/) · 🔒 security scan in [`docs/scan/scan-report.md`](docs/scan/scan-report.md). (System-overview media coming soon.)
+![bulletproof-compliance-portal — overview](docs/media/infographic.png)
+
+> 📚 Full documentation in [`docs/`](docs/) · 🔒 security scan in [`docs/scan/scan-report.md`](docs/scan/scan-report.md) · 🎬 System overview: [briefing](media/system-overview.md).
 
 ## What This Does
 
