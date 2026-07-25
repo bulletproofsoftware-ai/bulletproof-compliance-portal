@@ -3,7 +3,7 @@
 
 fastapi==0.140.0
 uvicorn[standard]==0.32.0
-jinja2==3.1.4
+jinja2==3.1.6
 pydantic==2.9.2
 pydantic-settings==2.6.1
 httpx==0.27.2
@@ -32,11 +32,11 @@ cachetools==7.0.6
 
 # WI-10 — Incident notes markdown rendering (AMD-19)
 markdown-it-py==3.0.0
-bleach==6.1.0
+bleach==6.4.0
 
 # Dev / test (kept here for reproducible CI; install with `pip install -r requirements.txt`)
-pytest==8.3.3
-pytest-asyncio==0.24.0
+pytest==9.0.3
+pytest-asyncio==1.4.0
 pytest-cov==6.0.0
 ruff==0.7.4
 mypy==1.13.0
