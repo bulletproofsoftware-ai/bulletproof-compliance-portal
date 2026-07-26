@@ -24,7 +24,7 @@ starlette==1.3.1
 
 # WI-19 — PDF Export Service
 # Native deps required: cairo, pango, gdk-pixbuf (brew install cairo pango gdk-pixbuf libffi)
-weasyprint==68.1
+weasyprint==69.0
 pikepdf==10.5.1
 pyHanko==0.34.1
 Brotli==1.2.0
