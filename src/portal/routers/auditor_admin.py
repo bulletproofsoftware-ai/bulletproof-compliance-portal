@@ -29,6 +29,7 @@ from fastapi.templating import Jinja2Templates
 from shared.api_client import ComplianceClient
 
 from ..auth.models import Role, User
+from ..auth.oidc import safe_next_url
 from ..auth.rbac import require_role
 from ..dependencies import get_compliance_client
 from ..logging import get_logger
@@ -203,7 +204,9 @@ async def engagement_revoke(
     except Exception as exc:  # noqa: BLE001
         logger.warning("auditor.revoke_audit_failed", error=str(exc))
     return RedirectResponse(
-        url=f"/admin/auditor-engagements/{safe_url_segment(engagement_id)}",
+        url=safe_next_url(
+            f"/admin/auditor-engagements/{safe_url_segment(engagement_id)}"
+        ),
         status_code=303,
     )
 
