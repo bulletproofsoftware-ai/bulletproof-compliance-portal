@@ -34,6 +34,7 @@ from ..auth.rbac import require_any_role
 from ..dependencies import get_compliance_client
 from ..logging import get_logger
 from ..pdf import register_component
+from ..safe_urls import safe_url_segment
 from ..templates import get_templates
 
 logger = get_logger(__name__)
@@ -217,7 +218,7 @@ async def evidence_download(
         # Auditor downloads MUST be watermarked — redirect through the PDF
         # service which applies AMD-06 metadata + visible watermark.
         return RedirectResponse(
-            url=f"/export/pdf/evidence_package/{package_id}",
+            url=f"/export/pdf/evidence_package/{safe_url_segment(package_id)}",
             status_code=303,
         )
 
@@ -232,7 +233,7 @@ async def evidence_download(
     # /static/evidence/...tar.gz URL.
     if metadata.download_url and metadata.download_url.startswith("/static/evidence/"):
         return RedirectResponse(
-            url=f"/export/pdf/evidence_package/{package_id}",
+            url=f"/export/pdf/evidence_package/{safe_url_segment(package_id)}",
             status_code=303,
         )
     if metadata.download_url:

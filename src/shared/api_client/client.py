@@ -184,6 +184,39 @@ class ComplianceClient:
         seed = f"{method}:{path}:{user_sub or 'anon'}:{uuid.uuid4().hex}"
         return seed[:80]
 
+    @staticmethod
+    def _safe_relative_path(path: str) -> str:
+        """Assert ``path`` is an internal relative path before it reaches httpx.
+
+        Callers build paths by interpolating ids into literals -- there are 40+
+        such f-strings in this module, and every id ultimately arrives from a
+        request. Rather than encode at each construction site, the invariant is
+        enforced once here, at the choke point every request passes through.
+
+        Checked because httpx only joins a URL onto ``base_url`` when it is
+        relative: a value carrying its own authority (``//host/x``) would be
+        fetched from that host instead of the compliance service. Query strings
+        are always passed via ``params``, so a "?" or "#" reaching this function
+        means an id smuggled one in, and is refused rather than forwarded.
+        """
+        if not isinstance(path, str) or not path.startswith("/"):
+            raise ValueError(f"api path must be relative and absolute-rooted: {path!r}")
+        # "//host" and the backslash variants browsers/parsers normalise.
+        if path.startswith("//") or path.startswith("/\\") or path.startswith("\\"):
+            raise ValueError(f"api path must not carry an authority: {path!r}")
+        # Control characters only. A plain space is legal in a document
+        # filename and httpx percent-encodes it; CR/LF are what would let a
+        # value break out of the request line.
+        if any(ord(ch) < 0x20 or ord(ch) == 0x7F for ch in path):
+            raise ValueError("api path must not contain control characters")
+        if "?" in path or "#" in path:
+            raise ValueError(f"api path must not contain a query or fragment: {path!r}")
+        # Interior "/" is legitimate (doc paths are multi-segment); traversal is
+        # not, and would let one endpoint's id address another endpoint.
+        if any(seg == ".." for seg in path.split("/")):
+            raise ValueError(f"api path must not traverse: {path!r}")
+        return path
+
     async def _request(
         self,
         method: str,
@@ -195,6 +228,10 @@ class ComplianceClient:
         max_attempts: int = 3,
     ) -> httpx.Response:
         """Execute the HTTP request with retry, circuit breaker, redirect guard."""
+        # Prove the target is still an internal relative path before anything
+        # else happens (CodeQL py/partial-ssrf).
+        path = self._safe_relative_path(path)
+
         # Circuit breaker check
         if not await self._cb.can_request():
             raise ServiceUnavailableError(

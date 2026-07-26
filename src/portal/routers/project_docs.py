@@ -29,6 +29,9 @@ service has already filtered upstream.
 
 from __future__ import annotations
 
+# Aliased: this module uses `html` as a local variable for rendered document
+# bodies, so the stdlib module name is not imported bare.
+from html import escape as _escape
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -464,9 +467,16 @@ def _render_missing_doc_page(
     404 breaks link-checkers and gives a hostile UX. Instead, render a 200
     page with a clear message + a link back to the project doc index.
     """
-    safe_doc_path = doc_path.replace("<", "&lt;").replace(">", "&gt;")
-    safe_project_id = project_id.replace("<", "&lt;").replace(">", "&gt;")
-    user_chip = (
+    # Escape with the stdlib, not by hand. The previous version replaced only
+    # "<" and ">", which leaves the double quote intact -- and safe_project_id
+    # is interpolated inside an href="..." attribute below. A project_id of
+    #     x" onmouseover="alert(1)
+    # therefore closed the attribute and added a live event handler without
+    # using a single angle bracket. user_chip was not escaped at all.
+    # _escape covers & < > " ' (quote=True by default).
+    safe_doc_path = _escape(doc_path)
+    safe_project_id = _escape(project_id)
+    user_chip = _escape(
         f"{user.email or user.sub} ({user.roles[0].value if user.roles else 'viewer'})"
         if user else "—"
     )

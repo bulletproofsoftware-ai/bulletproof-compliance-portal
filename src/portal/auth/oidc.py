@@ -119,7 +119,16 @@ def build_auth_router(settings: Settings) -> APIRouter:
         # In development APP_ENV the OIDC issuer is unreachable; surface the
         # dev-login bypass instead of trying (and failing) to reach the IdP.
         if settings.app_env == "development":
-            return RedirectResponse(url=f"/auth/dev-login?role=admin&next={next}", status_code=303)
+            # The docstring above promises `next` is sanitised via
+            # safe_next_url; on this branch it was not, and it was also
+            # interpolated unencoded, so a crafted value could append further
+            # query parameters to the dev-login URL. Sanitise and encode to
+            # match the documented behaviour and the production branch below.
+            return RedirectResponse(
+                url="/auth/dev-login?"
+                + urlencode({"role": "admin", "next": safe_next_url(next)}),
+                status_code=303,
+            )
         # Sanitise the post-login redirect target BEFORE persisting it in the
         # flow record. Even if downstream code is later refactored, the stored
         # value is already safe.

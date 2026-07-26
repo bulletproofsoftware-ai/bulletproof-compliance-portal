@@ -32,6 +32,7 @@ from ..auth.models import Role, User
 from ..auth.rbac import require_role
 from ..dependencies import get_compliance_client
 from ..logging import get_logger
+from ..safe_urls import safe_url_segment
 from ..templates import get_templates
 
 logger = get_logger(__name__)
@@ -202,7 +203,8 @@ async def engagement_revoke(
     except Exception as exc:  # noqa: BLE001
         logger.warning("auditor.revoke_audit_failed", error=str(exc))
     return RedirectResponse(
-        url=f"/admin/auditor-engagements/{engagement_id}", status_code=303
+        url=f"/admin/auditor-engagements/{safe_url_segment(engagement_id)}",
+        status_code=303,
     )
 
 
