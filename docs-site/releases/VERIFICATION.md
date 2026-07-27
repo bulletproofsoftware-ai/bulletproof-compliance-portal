@@ -231,7 +231,7 @@ Official release channels:
 If verification fails and you suspect the release is compromised:
 
 1. **DO NOT USE THE RELEASE**
-2. Email `security@example.com` immediately
+2. Email `marc@bulletproofsoftware.ai` immediately
 3. Include:
    - Which file failed verification
    - What verification method you used
@@ -246,6 +246,6 @@ If verification fails and you suspect the release is compromised:
 
 ---
 
-**For Questions**: security@example.com
+**For Questions**: marc@bulletproofsoftware.ai
 
 **Last Updated**: 2024-04-27
