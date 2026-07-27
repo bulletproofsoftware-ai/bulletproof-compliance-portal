@@ -14,14 +14,45 @@ upstream package publishes a release, and at minimum each quarter.
 
 | Field | Value |
 |---|---|
-| **Status** | Accepted |
+| **Status** | Accepted — **NOT EXPLOITABLE in this codebase** |
 | **Opened** | 2026-07-27 |
-| **Severity** | Medium (CVSS 5.3) |
+| **Severity** | Medium (CVSS 5.3, CVSS v4.0) |
 | **Package** | `bleach==6.4.0` |
 | **Finding** | Regular Expression Denial of Service (ReDoS) |
+| **Advisory** | [SNYK-PYTHON-BLEACH-17356127](https://security.snyk.io/vuln/SNYK-PYTHON-BLEACH-17356127) |
+| **Vulnerable function** | `LinkifyFilter.handle_email_addresses()` |
+| **Trigger condition** | **requires `parse_email=True`** |
 | **Scanner** | Snyk (`snyk test`, isolated venv) |
 | **`fixedIn`** | **NONE** — no patched release exists |
 | **Retires when** | bleach publishes a release addressing the ReDoS |
+
+### The vulnerable code path is never reached
+
+Per the Snyk advisory, the ReDoS lives in `LinkifyFilter.handle_email_addresses()`
+and is only reachable when the caller opts into email parsing via `parse_email=True`.
+
+`parse_email` defaults to `False`:
+
+```
+bleach.linkify(text, callbacks=[...], skip_tags=None, parse_email=False)
+LinkifyFilter.__init__  parse_email default: False
+```
+
+Both call sites in this repository invoke linkify without that argument:
+
+- `src/portal/services/markdown_render.py:95` → `bleach.linkify(cleaned, callbacks=[nofollow])`
+- `src/portal/services/project_docs.py:74`    → `bleach.linkify(cleaned, callbacks=[nofollow])`
+
+A repository-wide search for `parse_email` returns no matches outside this
+document. **`handle_email_addresses()` is therefore never invoked, and the
+vulnerable regex is never evaluated.** This is unreachable code, not merely
+low-likelihood exploitation.
+
+> [!important] Regression guard
+> This exception depends on `parse_email` remaining `False`. If any future
+> change passes `parse_email=True` to `bleach.linkify`, this finding becomes
+> live and this exception is void. Treat `parse_email=True` as a change
+> requiring security review.
 
 ### Why it cannot be fixed by upgrade
 
