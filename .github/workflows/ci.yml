@@ -24,6 +24,17 @@ jobs:
       # sys.path, so PYTHONPATH here is defence in depth for any invocation
       # that bypasses conftest. Failures FAIL the build — the suite runs
       # entirely in-process and needs no external services.
+      # SEC-EX-001 preconditions (CISO condition C1). The bleach ReDoS
+      # (SNYK-PYTHON-BLEACH-17356127) is accepted ONLY because its vulnerable path
+      # requires parse_email=True, which this codebase never passes. Run these
+      # first and by name so the gate is visible and cannot be lost inside a broad
+      # test run. If this step fails, SEC-EX-001 is VOID — escalate, do not patch
+      # the test.
+      - name: Security exception guards (SEC-EX-001)
+        env:
+          PYTHONPATH: src
+        run: pytest tests/test_markdown_render_guard.py -q
+
       - name: Tests
         env:
           PYTHONPATH: src

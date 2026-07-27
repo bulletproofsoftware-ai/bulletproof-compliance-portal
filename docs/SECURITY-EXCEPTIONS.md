@@ -84,31 +84,93 @@ Snyk reports `fixedIn: NONE` — there is no version to move to.
 | Reachable from the public DSR portal? | **No.** `src/dsr_portal/` contains no reference to `bleach`, `markdown_render`, or `render_note`. |
 | Reachable anonymously? | **No.** Only the internal portal, which is OIDC-authenticated (Authentik IdP) across 5 roles: admin, compliance_officer, auditor, sme, viewer. |
 | Who can trigger it? | An authenticated internal user submitting crafted markdown (e.g. WI-10 incident investigation notes). |
-| Practical impact | An authenticated staff member could degrade responsiveness of the portal they themselves use. No data disclosure, no privilege escalation, no integrity impact. |
+| Practical impact | Degraded responsiveness **for all concurrent users of the portal worker**, not only the submitter — see below. No data disclosure, no privilege escalation, no integrity impact. |
 
-The attacker who can reach this code path is already a trusted, named,
-authenticated user — the same user who could simply stop using the portal.
+> [!warning] Corrected blast radius (CISO condition C2)
+> An earlier revision of this entry stated the impact was limited to "the portal
+> they themselves use". **That was wrong and understated the risk.**
+>
+> `render_note()` is synchronous, CPU-bound work invoked directly inside `async def`
+> request handlers with **no threadpool offload** — a repo-wide search for
+> `run_in_threadpool`, `to_thread`, and `ThreadPool` returns nothing:
+> - `src/portal/routers/incidents.py:286` (handler at `:274`)
+> - `src/portal/routers/project_docs.py:429` and `:649`
+>
+> CPU time spent there blocks the worker's event loop, so slow rendering degrades
+> **every concurrent request served by that worker**, not just the request that
+> caused it.
+>
+> This does not change the acceptance decision — the vulnerable email path is still
+> unreachable — but the exposure statement must be accurate about what *would*
+> happen if it ever became reachable, or if the reachable rendering path itself is
+> fed pathological input.
+
+The attacker who can reach this code path is a trusted, named, authenticated user.
+That constrains likelihood and gives full attribution; it does not constrain blast
+radius, which is worker-wide.
 
 ### Compensating controls
 
-- `slowapi` rate limiting is present in the dependency set and applied to
-  portal routes.
+- **A hard 10,000-character input cap on incident notes** —
+  `src/portal/routers/incidents.py:277`,
+  `content: str = Form(..., min_length=1, max_length=10_000)`. This is the single
+  strongest control on this path: it bounds the reachable render pipeline to
+  roughly 27 ms of work. Removing or raising this cap materially changes the risk
+  and requires security review.
+- `slowapi` rate limiting, applied **globally** via `SlowAPIMiddleware`
+  (`src/portal/main.py:249`, `src/dsr_portal/main.py:173`). There are no per-route
+  `@limiter.limit(...)` decorators anywhere in the codebase; coverage comes from a
+  single default limit that every route falls through to. Keying is on the real
+  client IP because `ForwardedHeaderMiddleware` is registered last and therefore
+  runs first (`src/portal/main.py:258`).
 - The public, unauthenticated attack surface (DSR portal) is architecturally
   separate and does not import this code.
 - The markdown pipeline runs `markdown-it-py` with `html=False`, so raw HTML
   never becomes DOM nodes before sanitization.
 - All portal access is authenticated and attributable via OIDC.
 
+> [!note] Known gap, not a blocker for this exception
+> `doc.content` rendered at `project_docs.py:429` and `:649` has **no equivalent
+> size cap**. That content originates from the compliance service rather than
+> direct user input, so it is not attacker-controlled in the same way — but the
+> reachable render pipeline is superlinear in input size, and a cap plus
+> `run_in_threadpool` offload would be prudent hardening. Tracked as a
+> recommendation, not a condition of this exception.
+
 ### Review
 
 | Date | Reviewer | Outcome |
 |---|---|---|
-| 2026-07-27 | Pending CISO sign-off | Proposed acceptance — awaiting review |
+| 2026-07-27 | CISO review | **APPROVE WITH CONDITIONS** |
 
-**Action for reviewer:** confirm acceptance, or direct migration to `nh3` with
-a CISO amendment covering the control-surface change and an adversarial
-re-test of the XSS cases enumerated in `markdown_render.render_note`'s
-docstring.
+The reviewer independently verified the unreachability argument rather than
+accepting it: confirmed `parse_email=False` defaults in installed bleach 6.4.0
+(`bleach/__init__.py:85`, `linkifier.py:109`, `:210`), confirmed
+`handle_email_addresses()` has exactly one call site guarded by
+`if self.parse_email:` (`linkifier.py:618-619`), and confirmed zero
+`parse_email` occurrences in `src/`. Benchmarked the vulnerable path at
+**1.29 s enabled vs 0.0023 s in this configuration** (~560×) at the 10,000-char
+cap, with quadratic scaling. Also confirmed `src/dsr_portal/` has zero
+references to bleach/markdown rendering.
+
+**Conditions and status:**
+
+| # | Condition | Status |
+|---|---|---|
+| C1 | Replace the prose guard with an enforceable control | **DONE** — `tests/test_markdown_render_guard.py` (9 tests) + named CI step in `.github/workflows/ci.yml`. Verified to FAIL when `parse_email=True` is injected. |
+| C2 | Correct the impact statement; add the 10,000-char cap to controls | **DONE** — see the corrected blast-radius callout above. |
+| C3 | Fix `rate_limit.py` docstring; fix the discarded async 429 handler | **DONE** — docstring now describes the actual global-default mechanism; `_rate_limit_handler` made synchronous so the custom body is no longer dead code. |
+| C4 | Fix the `markdown_render.py` linkify comment | **DONE** — comment corrected and a security note added covering the `linkify-it-py` / `fuzzy_email=True` trap. |
+| C5 | Regenerate the SBOM against the actual pinned set | **OPEN** — blocking for release, not for this exception. See below. |
+
+**Retirement conditions.** This exception is void if any of the following occur:
+1. bleach publishes a release addressing the ReDoS (upgrade instead);
+2. `parse_email=True` is introduced anywhere in `src/`;
+3. the markdown-it `linkify` rule is enabled, or `linkify-it-py` enters the
+   dependency set (its `fuzzy_email=True` default reintroduces the same risk).
+
+Conditions 2 and 3 are enforced by `tests/test_markdown_render_guard.py`, not by
+this document.
 
 ---
 
