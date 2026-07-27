@@ -1787,44 +1787,6 @@
       "version": "12.3.0"
     },
     {
-      "bom-ref": "pip==26.0",
-      "description": "The PyPA recommended tool for installing Python packages.",
-      "externalReferences": [
-        {
-          "comment": "from packaging metadata Project-URL: Documentation",
-          "type": "documentation",
-          "url": "https://pip.pypa.io"
-        },
-        {
-          "comment": "from packaging metadata Project-URL: Source",
-          "type": "other",
-          "url": "https://github.com/pypa/pip"
-        },
-        {
-          "comment": "from packaging metadata Project-URL: Changelog",
-          "type": "release-notes",
-          "url": "https://pip.pypa.io/en/stable/news/"
-        },
-        {
-          "comment": "from packaging metadata Project-URL: Homepage",
-          "type": "website",
-          "url": "https://pip.pypa.io/"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "pip",
-      "purl": "pkg:pypi/pip@26.0",
-      "type": "library",
-      "version": "26.0"
-    },
-    {
       "bom-ref": "pip-requirements-parser==32.0.1",
       "description": "pip requirements parser - a mostly correct pip requirements parsing library because it uses pip's own code.",
       "externalReferences": [
@@ -4182,14 +4144,7 @@
         }
       ]
     },
-    "timestamp": "2026-07-27T23:20:00+00:00",
-    "component": {
-      "type": "application",
-      "name": "compliance-portal",
-      "version": "0.0.0",
-      "description": "PRD-19 Compliance Portal & Human-in-the-Loop Interface",
-      "purl": "pkg:generic/compliance-portal@0.0.0"
-    }
+    "timestamp": "2026-07-27T23:30:00+00:00"
   },
   "version": 1,
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
