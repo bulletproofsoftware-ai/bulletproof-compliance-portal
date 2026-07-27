@@ -16,7 +16,6 @@ alembic==1.13.3
 authlib==1.7.2
 itsdangerous==2.2.0
 cryptography==49.0.0
-python-jose[cryptography]==3.5.0
 redis==5.2.0
 slowapi==0.1.9
 prometheus-client==0.21.0
