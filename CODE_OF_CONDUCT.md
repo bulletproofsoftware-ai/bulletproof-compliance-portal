@@ -1,206 +1,127 @@
-# Code of Conduct
+# Contributor Covenant Code of Conduct
 
 ## Our Pledge
 
-We are committed to providing a welcoming and inclusive environment for all contributors to the Compliance Portal project, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, sexual identity and orientation, socioeconomic status, or other characteristics.
+We as members, contributors, and leaders pledge to make participation in our
+community a harassment-free experience for everyone, regardless of age, body
+size, visible or invisible disability, ethnicity, sex characteristics, gender
+identity and expression, level of experience, education, socio-economic status,
+nationality, personal appearance, race, caste, color, religion, or sexual
+identity and orientation.
 
-We pledge that participation in our community is a harassment-free experience for everyone, and we will work actively to create a respectful, professional, and collaborative atmosphere.
+We pledge to act and interact in ways that contribute to an open, welcoming,
+diverse, inclusive, and healthy community.
 
 ## Our Standards
 
-### Positive Behavior We Value
+Examples of behavior that contributes to a positive environment:
 
-- **Inclusivity**: Welcome and support people of all backgrounds and experiences
-- **Respect**: Treat all community members with dignity and courtesy
-- **Constructive Feedback**: Provide and accept critical feedback professionally
-- **Accountability**: Take responsibility for your actions and their impact
-- **Professionalism**: Maintain professional standards in all interactions
-- **Collaboration**: Work together toward shared goals; share knowledge generously
-- **Focus on Issues, Not People**: Criticize ideas and approaches, not individuals
-- **Open-Mindedness**: Listen actively and be willing to change your perspective
+- Demonstrating empathy and kindness toward other people
+- Being respectful of differing opinions, viewpoints, and experiences
+- Giving and gracefully accepting constructive feedback
+- Accepting responsibility and apologizing to those affected by our mistakes,
+  and learning from the experience
+- Focusing on what is best not just for us as individuals, but for the overall
+  community
 
-### Unacceptable Behavior
+Examples of unacceptable behavior:
 
-The following behaviors are considered unacceptable in our community:
+- The use of sexualized language or imagery, and sexual attention or advances of
+  any kind
+- Trolling, insulting or derogatory comments, and personal or political attacks
+- Public or private harassment
+- Publishing others' private information, such as a physical or email address,
+  without their explicit permission
+- Other conduct which could reasonably be considered inappropriate in a
+  professional setting
 
-- **Harassment**: Unwelcome comments, verbal attacks, threats, or intimidation based on protected characteristics
-- **Discrimination**: Exclusion, prejudice, or differential treatment based on identity
-- **Abuse of Power**: Using position or status to intimidate, coerce, or control others
-- **Sexual Harassment**: Unwanted sexual comments, advances, or images
-- **Doxxing**: Publishing private information without consent
-- **Trolling**: Intentionally disruptive, inflammatory, or provocative behavior
-- **Spam & Self-Promotion**: Excessive promotional or commercial content
-- **Hate Speech**: Speech that demeans or attacks individuals or groups
-- **Threats & Violence**: Any threats of violence or harm
+## Enforcement Responsibilities
+
+Maintainers are responsible for clarifying and enforcing our standards of
+acceptable behavior and will take appropriate and fair corrective action in
+response to any behavior that they deem inappropriate, threatening, offensive,
+or harmful.
+
+Maintainers have the right and responsibility to remove, edit, or reject
+comments, commits, code, wiki edits, issues, and other contributions that are
+not aligned to this Code of Conduct, and will communicate reasons for moderation
+decisions when appropriate.
 
 ## Scope
 
-This Code of Conduct applies to:
+This Code of Conduct applies within all community spaces, and also applies when
+an individual is officially representing the community in public spaces.
+Examples include using an official email address, posting via an official social
+media account, or acting as an appointed representative at an online or offline
+event.
 
-- All project repositories, wikis, wikis, and documentation
-- Project issue trackers, pull requests, and discussions
-- Official project events, meetups, and conferences
-- Project communication channels (Slack, Discord, mailing lists, forums)
-- Social media when discussing the project
-- Any space officially designated as part of the project community
+## Enforcement
 
-The Code of Conduct applies equally to all members, including project maintainers, contributors, and users.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be
+reported to the maintainer at **marc@bulletproofsoftware.ai**.
 
-## Reporting & Enforcement
+All complaints will be reviewed and investigated promptly and fairly. The
+maintainer is obligated to respect the privacy and security of the reporter of
+any incident.
 
-### How to Report
+> **On scale.** This project has a single maintainer. Reports go directly to
+> that person and are handled personally. There is no separate investigations
+> team, appeals board, or leadership escalation tier — if a report concerns the
+> maintainer, raise it publicly or via GitHub Support, since an internal
+> escalation path would not be meaningful here.
 
-If you experience or witness unacceptable behavior, please report it immediately to the project maintainers:
+## Enforcement Guidelines
 
-**Email**: conduct@[your-organization].com
+Maintainers will follow these Community Impact Guidelines in determining the
+consequences for any action they deem in violation of this Code of Conduct:
 
-**Reporting should include**:
-1. Description of the incident
-2. Context and location (issue/PR/channel/event)
-3. People involved (if safe to name them)
-4. Your contact information (if you're willing to follow up)
-5. Any relevant screenshots or evidence (if safe to share)
+### 1. Correction
 
-**Your report will be**:
-- Treated seriously and confidentially
-- Investigated promptly
-- Not dismissed or minimized
-- Handled with appropriate support
+**Community Impact**: Use of inappropriate language or other behavior deemed
+unprofessional or unwelcome.
 
-### Confidentiality & Safety
+**Consequence**: A private, written warning, providing clarity around the nature
+of the violation and an explanation of why the behavior was inappropriate. A
+public apology may be requested.
 
-- **Confidentiality**: Reports are shared only with those who need to know to investigate
-- **No Retaliation**: We will not tolerate retaliation against those who report in good faith
-- **Privacy**: We will protect the privacy of both reporter and reported
-- **Support**: Support resources will be offered to affected individuals
+### 2. Warning
 
-### Investigation & Resolution
+**Community Impact**: A violation through a single incident or series of
+actions.
 
-1. **Initial Response** (within 24 hours):
-   - Acknowledge receipt of the report
-   - Assess immediate safety concerns
-   - Gather initial information
+**Consequence**: A warning with consequences for continued behavior. No
+interaction with the people involved, including unsolicited interaction with
+those enforcing the Code of Conduct, for a specified period of time. Violating
+these terms may lead to a temporary or permanent ban.
 
-2. **Investigation** (within 72 hours):
-   - Interview all parties involved
-   - Gather evidence and documentation
-   - Determine facts and context
-   - Consult with advisors if needed
+### 3. Temporary Ban
 
-3. **Determination**:
-   - Assess whether Code of Conduct was violated
-   - Determine severity and context
-   - Identify appropriate response
+**Community Impact**: A serious violation of community standards, including
+sustained inappropriate behavior.
 
-4. **Remediation** (varies by severity):
-   - **Verbal Warning**: Expectation of behavior change; documented
-   - **Written Warning**: Formal notice of violation; may include training requirement
-   - **Temporary Suspension**: Removal from community for 1-7 days; requires apology/commitment on return
-   - **Permanent Ban**: Removal from community; no appeal
+**Consequence**: A temporary ban from any sort of interaction or public
+communication with the community for a specified period of time. Violating these
+terms may lead to a permanent ban.
 
-### Appeals
+### 4. Permanent Ban
 
-If you believe an enforcement action is inappropriate:
+**Community Impact**: Demonstrating a pattern of violation of community
+standards, including sustained inappropriate behavior, harassment of an
+individual, or aggression toward or disparagement of classes of individuals.
 
-1. **Appeal Process**: Email appeal@[your-organization].com within 14 days of decision
-2. **Review**: Independent reviewer (not original investigators) will review your appeal
-3. **Resolution**: Final decision will be made within 7 days
+**Consequence**: A permanent ban from any sort of public interaction within the
+community.
 
-## Escalation
+## Attribution
 
-### When to Escalate
+This Code of Conduct is adapted from the
+[Contributor Covenant](https://www.contributor-covenant.org), version 2.1,
+available at
+https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
 
-Escalate to leadership (not just maintainers) if:
+Community Impact Guidelines were inspired by
+[Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/diversity).
 
-- The reported person is a project maintainer
-- The behavior involves potential legal issues
-- The severity is severe (threats, harassment, hate speech)
-- Previous enforcement actions haven't resolved the issue
-
-### Escalation Contact
-
-For serious violations or escalations:
-
-**Email**: leadership@[your-organization].com
-
-## Community Leadership & Responsibilities
-
-### Maintainer Responsibilities
-
-Maintainers have additional responsibilities:
-
-- Model respectful behavior and inclusive practices
-- Actively work to create a welcoming environment
-- Enforce this Code of Conduct fairly and consistently
-- Address concerns promptly and seriously
-- Provide mentorship and support to community members
-- Seek training on conflict resolution and inclusive communication
-
-### Contributor Responsibilities
-
-All contributors should:
-
-- Follow this Code of Conduct in all interactions
-- Call out unacceptable behavior (constructively, if safe)
-- Support others who report violations
-- Work toward creating an inclusive community
-- Consider the impact of your words and actions
-
-## Training & Resources
-
-### Getting Help
-
-If you're uncertain about the Code of Conduct:
-
-- **Questions**: open a discussion, or contact the maintainer at marc@bulletproofsoftware.ai
-- **Mentorship**: ask for guidance from maintainers
-
-### Recommended Reading
-
-- [Why Community Matters](https://en.wikipedia.org/wiki/Communities_of_practice)
-- [Inclusive Communication Guide](https://www.interaction-design.org/)
-- [Conflict Resolution & Mediation](https://www.pon.harvard.edu/)
-
-## Diversity & Inclusion
-
-### Our Commitment
-
-We actively work to:
-
-- Recruit contributors from underrepresented groups
-- Provide mentorship and support for new contributors
-- Create space for diverse perspectives and experiences
-- Ensure our documentation and examples represent diverse people
-- Evaluate potential for bias in our decision-making
-- Review and update this Code of Conduct regularly
-
-### Representation
-
-Contributions are welcome from anyone, and maintainers are available to help
-new contributors get started — open an issue or discussion to ask.
-
-## Acknowledgments
-
-This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org/), version 2.1, and incorporates best practices from:
-
-- [Python Software Foundation Code of Conduct](https://www.python.org/psf/codeofconduct/)
-- [Linux Kernel Code of Conduct](https://www.kernel.org/code-of-conduct.html)
-- [Diversity & Inclusion Guide by Mozilla](https://www.mozilla.org/en-US/about/diversity-inclusion/)
-
-## Updates to This Code of Conduct
-
-This Code of Conduct may be updated periodically. Changes will be announced to the community with at least 30 days notice. Major changes require community feedback and leadership approval.
-
-**Version**: 1.0 | **Last Updated**: 2024-04-27 | **Effective Date**: 2024-04-27
-
-## Questions?
-
-If you have questions about this Code of Conduct, please contact:
-
-- **Project Maintainers**: conduct@[your-organization].com
-- **Leadership**: leadership@[your-organization].com
-- **Community Manager**: community@[your-organization].com
-
----
-
-Thank you for helping us build a welcoming, inclusive, and professional community. Your participation and respect for this Code of Conduct is appreciated.
+For answers to common questions about this code of conduct, see the FAQ at
+https://www.contributor-covenant.org/faq. Translations are available at
+https://www.contributor-covenant.org/translations.
