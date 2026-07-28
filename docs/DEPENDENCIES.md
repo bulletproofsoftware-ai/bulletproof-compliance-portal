@@ -143,10 +143,22 @@ Pydantic validates request/response data, ensuring type safety and preventing in
 
 | Package | Version | License | Purpose |
 |---------|---------|---------|---------|
-| **cryptography** | 42.0.5 | Apache-2.0/BSD | Cryptographic algorithms (Ed25519, ECDSA, etc.) |
-| **pyjwt** | 2.8.1 | MIT | JWT token generation and validation |
-| **python-jose** | 3.3.0 | MIT | JOSE/JWT library (OIDC support) |
-| **passlib** | 1.7.4 | BSD-2 | Password hashing (bcrypt, scrypt) |
+| **cryptography** | 49.0.0 | Apache-2.0/BSD | Cryptographic algorithms (Ed25519, ECDSA, etc.) |
+| **authlib** | 1.7.2 | BSD-3-Clause | OAuth 2.0 / OIDC client — the actual auth implementation (`src/portal/auth/oidc.py`) |
+| **joserfc** | 1.7.4 | BSD-3-Clause | JOSE (JWT/JWS/JWE) primitives, pulled in by Authlib |
+| **itsdangerous** | 2.2.0 | BSD-3-Clause | Signed session cookies and tokens |
+
+> [!note] Corrected 2026-07-27
+> This table previously listed `pyjwt`, `python-jose`, and `passlib`. **None of
+> the three are dependencies of this project** — `pyjwt` and `passlib` were never
+> declared, and `python-jose` was declared but never imported anywhere, so it was
+> removed (it was the sole path to `ecdsa`, which carried two HIGH findings with
+> no fix available, including CVE-2024-23342). `cryptography` was also listed at
+> 42.0.5; the pinned version is 49.0.0.
+>
+> OIDC is implemented with **Authlib**, which depends on `cryptography` and
+> `joserfc` — not `ecdsa`. If JWT work is added later, use Authlib (already
+> present) or `pyjwt[crypto]`; both avoid the unmaintained `ecdsa` package.
 
 These packages provide:
 - OIDC authentication flow (WI-02)
