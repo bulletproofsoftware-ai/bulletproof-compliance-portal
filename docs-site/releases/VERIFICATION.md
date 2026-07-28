@@ -242,7 +242,7 @@ If verification fails and you suspect the release is compromised:
 
 - **Security Policy**: See [SECURITY.md](../../SECURITY.md)
 - **Known Issues**: See release notes for any identified issues
-- **Security Advisories**: See [Security Advisories](../security/advisories.md)
+- **Security Advisories**: See [Security Advisories](https://github.com/bulletproofsoftware-ai/bulletproof-compliance-portal/security/advisories)
 
 ---
 

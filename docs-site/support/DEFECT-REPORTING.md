@@ -13,7 +13,7 @@ Report a bug if:
 - Performance is unusually slow
 - Security vulnerability discovered
 
-**Note**: For security vulnerabilities, see [Security Reporting](../security/reporting.md) instead of using the public bug tracker.
+**Note**: For security vulnerabilities, see [Security Reporting](../../SECURITY.md) instead of using the public bug tracker.
 
 ## Before You Report
 
@@ -24,11 +24,11 @@ Report a bug if:
    - Filter by `type:bug` label
    - Check closed issues (may be fixed in a later version)
 
-2. **Check Troubleshooting Guide**: See [FAQ & Troubleshooting](../user-guides/troubleshooting.md)
+2. **Check Troubleshooting Guide**: See the project documentation in [`docs/`](../../docs/)
    - Your issue may have a known workaround
    - Common issues are documented with solutions
 
-3. **Check Release Notes**: See [Changelog](../releases/changelog.md)
+3. **Check Release Notes**: See [Changelog](../../CHANGELOG.md)
    - Recent releases may have fixed your issue
    - Upgrade to the latest version to confirm
 
@@ -186,7 +186,7 @@ We use these severity levels to prioritize fixes:
 
 **DO NOT report security vulnerabilities in public GitHub issues.**
 
-For security issues, see [Security Reporting](../security/reporting.md) to report privately.
+For security issues, see [Security Reporting](../../SECURITY.md) to report privately.
 
 ## Expected Response Times
 
@@ -208,7 +208,7 @@ Yes! Customers with commercial support plans get priority response:
 - **Premium**: 4-hour response time
 - **Enterprise**: 1-hour response time
 
-See [Support Plans](../support/support-policy.md#commercial-support) for details.
+See the maintainer at marc@bulletproofsoftware.ai for details.
 
 ### "Will you fix my bug immediately?"
 
@@ -285,9 +285,9 @@ Upload to YouTube unlisted and link in your issue.
 
 ## Related Resources
 
-- **Troubleshooting Guide**: [FAQ & Troubleshooting](../user-guides/troubleshooting.md)
-- **Security Reporting**: [Report Security Issues](../security/reporting.md)
-- **Support Options**: [Support Channels](../support/contact.md)
+- **Troubleshooting Guide**: the project documentation in [`docs/`](../../docs/)
+- **Security Reporting**: [Report Security Issues](../../SECURITY.md)
+- **Support Options**: marc@bulletproofsoftware.ai
 - **Contributing**: [Contributing Guidelines](../../CONTRIBUTING.md)
 
 ---

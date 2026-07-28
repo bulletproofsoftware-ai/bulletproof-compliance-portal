@@ -597,4 +597,4 @@ Regulatory report exports signed with Ed25519:
 | Portal→service privilege escalation | Low | High | AMD-10 mTLS (never bearer alone) + AMD-05 ACL |
 | PII in logs | Medium | High | AMD-17 structured redaction at all nesting levels |
 
-See **[CISO-architecture-review.md](./CISO-architecture-review.md)** for detailed security assessment.
+Security posture, accepted risks, and their justifications are recorded in **[`SECURITY-EXCEPTIONS.md`](SECURITY-EXCEPTIONS.md)**.

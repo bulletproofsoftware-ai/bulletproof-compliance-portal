@@ -152,9 +152,8 @@ All contributors should:
 
 If you're uncertain about the Code of Conduct:
 
-- **FAQ**: See [Code of Conduct FAQ](./docs/COC-FAQ.md)
-- **Resources**: See [Inclusive Community Resources](./docs/INCLUSIVE-COMMUNITY.md)
-- **Mentorship**: Ask for guidance from maintainers
+- **Questions**: open a discussion, or contact the maintainer at marc@bulletproofsoftware.ai
+- **Mentorship**: ask for guidance from maintainers
 
 ### Recommended Reading
 
@@ -177,9 +176,8 @@ We actively work to:
 
 ### Representation
 
-- [Team Diversity Dashboard](./docs/DIVERSITY-STATS.md)
-- [Contributor Spotlight](./docs/CONTRIBUTORS.md)
-- [Mentorship Program](./docs/MENTORSHIP.md)
+Contributions are welcome from anyone, and maintainers are available to help
+new contributors get started — open an issue or discussion to ask.
 
 ## Acknowledgments
 
